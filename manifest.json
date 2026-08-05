@@ -1,0 +1,17 @@
+{
+  "name": "쏠비치 삼척 안전보건 게시판",
+  "short_name": "안전보건 게시판",
+  "description": "쏠비치 삼척 근로자 안전보건 자료실, 공지사항, 비상연락망, 안전신고제",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF6ED",
+  "theme_color": "#123C63",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
