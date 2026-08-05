@@ -72,6 +72,29 @@ function classifyLevel(ta, feelsLike) {
   return { cls: 'lv-normal', label: '정상' };
 }
 
+// 일부 정부 공공데이터 API가 TLS 인증서 체인 문제로 fetch에서
+// 실패하는 경우가 있어, Node 기본 https 모듈로 직접 호출하고
+// 이 호출에 한해 인증서 검증을 완화합니다. (외부 패키지 설치 불필요)
+const https = require('https');
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { rejectUnauthorized: false, timeout: 9000 }, (resp) => {
+      let body = '';
+      resp.on('data', (chunk) => { body += chunk; });
+      resp.on('end', () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch (e) {
+          reject(new Error(`JSON parse failed: ${e.message} | body head: ${body.slice(0, 200)}`));
+        }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('요청 시간 초과')));
+    req.on('error', (err) => reject(err));
+  });
+}
+
 module.exports = async (req, res) => {
   try {
     const serviceKey = process.env.KMA_SERVICE_KEY;
@@ -91,8 +114,16 @@ module.exports = async (req, res) => {
       `?serviceKey=${serviceKey}&numOfRows=10&pageNo=1&dataType=JSON` +
       `&base_date=${baseDate}&base_time=${baseTime}&nx=${NX}&ny=${NY}`;
 
-    const r = await fetch(url);
-    const data = await r.json();
+    let data;
+    try {
+      data = await fetchJson(url);
+    } catch (fetchErr) {
+      res.status(500).json({
+        error: String(fetchErr),
+        debug_cause: fetchErr && fetchErr.cause ? String(fetchErr.cause) : null,
+      });
+      return;
+    }
 
     const items = data?.response?.body?.items?.item;
     if (!items) {
@@ -128,6 +159,6 @@ module.exports = async (req, res) => {
       baseTime,
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: String(err), debug_cause: err && err.cause ? String(err.cause) : null });
   }
 };
