@@ -308,9 +308,10 @@
   .lvl-scale{
     display:flex;
     gap:6px;
-    margin-top:7px;
+    margin-top:11px;
   }
   .lvl-pill{
+    position:relative;
     flex:1;
     font-size:10.5px;
     font-weight:800;
@@ -331,6 +332,26 @@
     opacity:1;
     border-color:currentColor;
     transform:scale(1.05);
+  }
+  .lvl-pill.active::after{
+    content:"Click!";
+    position:absolute;
+    top:-10px;
+    right:-4px;
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:0;
+    color:#fff;
+    background:#D8362A;
+    padding:1.5px 5px;
+    border-radius:7px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+    white-space:nowrap;
+    animation: clickHint 1.3s ease-in-out infinite;
+  }
+  @keyframes clickHint{
+    0%, 100% { transform:scale(1); }
+    50% { transform:scale(1.18); }
   }
 
   /* ===================== 카테고리 상세 (기존 스타일 재사용) ===================== */
@@ -895,7 +916,7 @@ function renderNotice(){
 function renderEmergency(){
   return `
     ${navbarHTML('비상연락망')}
-    <div class="page-head"><h2>비상연락망</h2><p class="note">현장에서 즉시 연락 가능한 비상연락처입니다.</p></div>
+    <div class="page-head"><h2>비상연락망</h2><p class="note">현장에서 즉시 연락 가능한 비상연락처입니다. 누르면 바로 통화가 연결됩니다.</p></div>
     <div class="call-list">
       ${EMERGENCY_CONTACTS.map(c => `
         <a class="call-item" href="tel:${c.num.replace(/-/g,'')}">
