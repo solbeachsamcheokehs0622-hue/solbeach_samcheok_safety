@@ -1247,7 +1247,7 @@ function renderNoticeList(){
   listEl.innerHTML = lastNotices.map(n => `
     <div class="notice-item">
       <div class="n-title">${escapeHtml(n.title)}</div>
-      <div class="n-date">${n.date}</div>
+      <div class="n-date">${n.date} · 작성자: 관리자</div>
       <div class="n-content">${escapeHtml(n.content)}</div>
       ${isNoticeAdmin ? `<div class="n-del" onclick="deleteNotice(${n.id})">삭제</div>` : ''}
     </div>
