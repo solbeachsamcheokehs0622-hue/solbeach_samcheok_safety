@@ -214,11 +214,10 @@
     background:var(--paper); border:1px solid var(--line); border-radius:12px;
     padding:14px; margin:0 20px 14px; display:flex; flex-direction:column; gap:8px;
   }
-  .notice-form input, .notice-form textarea{
+  .notice-form input{
     border:1px solid var(--line); border-radius:8px; padding:9px 10px;
     font-size:13px; font-family:inherit; color:var(--ink); background:var(--sand);
   }
-  .notice-form textarea{ min-height:90px; resize:vertical; line-height:1.5; }
   .notice-form .form-actions{ display:flex; gap:8px; justify-content:flex-end; }
   .notice-form button.primary{
     background:var(--blue); color:#fff; border:none; border-radius:8px;
@@ -228,6 +227,34 @@
     background:none; border:1px solid var(--line); border-radius:8px;
     padding:9px 15px; font-size:12.5px; cursor:pointer; color:var(--ink-soft);
   }
+
+  /* 에디터 툴바 + 색상 팔레트 */
+  .editor-toolbar{ position:relative; display:flex; gap:5px; flex-wrap:wrap; }
+  .editor-toolbar .tb-btn{
+    width:30px; height:30px; border-radius:7px; border:1px solid var(--line);
+    background:var(--sand); color:var(--ink); font-size:13px; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .color-popover{
+    position:absolute; top:36px; left:0; z-index:30;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:8px; box-shadow:0 6px 16px rgba(18,60,99,0.18);
+    display:none; grid-template-columns:repeat(5,1fr); gap:6px; width:186px;
+  }
+  .color-popover.open{ display:grid; }
+  .color-swatch{
+    width:28px; height:28px; border-radius:7px; border:1px solid rgba(0,0,0,0.1);
+    cursor:pointer; padding:0;
+  }
+  .notice-editor{
+    min-height:100px; max-height:260px; overflow-y:auto;
+    border:1px solid var(--line); border-radius:8px; padding:9px 10px;
+    font-size:13px; line-height:1.55; color:var(--ink); background:var(--sand);
+  }
+  .notice-editor:focus{ outline:2px solid rgba(29,111,176,0.28); }
+  .notice-editor:empty:before{ content:"내용을 입력하세요"; color:var(--ink-soft); }
+  .editor-hint{ font-size:10.5px; color:var(--ink-soft); line-height:1.5; }
+
   .notice-item{
     background:var(--paper); border:1px solid var(--line); border-radius:12px;
     padding:14px 15px; margin-bottom:8px;
@@ -235,8 +262,9 @@
   .notice-item .n-title{ font-size:13.5px; font-weight:700; }
   .notice-item .n-date{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
   .notice-item .n-content{
-    font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:9px; white-space:pre-wrap;
+    font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:9px;
   }
+  .notice-item .n-content div{ min-height:1em; }
   .notice-item .n-del{
     display:inline-block; font-size:11px; font-weight:700; color:#B23F28;
     margin-top:10px; cursor:pointer;
@@ -1212,6 +1240,74 @@ function handleLevelPillClick(levelWord){
    관리자 비밀번호는 4860 (서버에서도 다시 한 번 확인합니다)
    ============================================================ */
 let isNoticeAdmin = false;
+
+/* ---------- 리치텍스트 서식 (굵게/기울임/밑줄/글자색/형광펜) ---------- */
+const TEXT_COLORS = [
+  {name:'검정',hex:'#000000'},{name:'흰색',hex:'#FFFFFF'},{name:'빨강',hex:'#E53935'},{name:'주황',hex:'#FB8C00'},{name:'노랑',hex:'#FDD835'},
+  {name:'연두',hex:'#8BC34A'},{name:'초록',hex:'#43A047'},{name:'민트',hex:'#26A69A'},{name:'하늘',hex:'#29B6F6'},{name:'파랑',hex:'#1E88E5'},
+  {name:'남색',hex:'#3949AB'},{name:'보라',hex:'#8E24AA'},{name:'분홍',hex:'#EC407A'},{name:'갈색',hex:'#795548'},{name:'회색',hex:'#757575'},
+  {name:'진회색',hex:'#424242'},{name:'청록',hex:'#00897B'},{name:'올리브',hex:'#7CB342'},{name:'금색',hex:'#C9A227'},{name:'버건디',hex:'#8E244D'}
+];
+const HILITE_COLORS = [
+  {name:'노랑',hex:'#FFF59D'},{name:'연노랑',hex:'#FFF9C4'},{name:'주황',hex:'#FFE0B2'},{name:'살구',hex:'#FFCCBC'},{name:'분홍',hex:'#F8BBD0'},
+  {name:'연분홍',hex:'#FCE4EC'},{name:'연보라',hex:'#E1BEE7'},{name:'라벤더',hex:'#EDE7F6'},{name:'하늘',hex:'#B3E5FC'},{name:'연파랑',hex:'#E3F2FD'},
+  {name:'민트',hex:'#B2DFDB'},{name:'청록',hex:'#B2EBF2'},{name:'연두',hex:'#DCEDC8'},{name:'라임',hex:'#F0F4C3'},{name:'초록',hex:'#C8E6C9'},
+  {name:'베이지',hex:'#F5F5DC'},{name:'아이보리',hex:'#FFFDE7'},{name:'회색',hex:'#EEEEEE'},{name:'진회색',hex:'#BDBDBD'},{name:'하늘민트',hex:'#E0F7FA'}
+];
+let lastTextColor = '#E53935';
+let lastHiliteColor = '#FFF59D';
+
+function applyFormat(cmd){
+  document.getElementById('noticeContentEditor').focus();
+  document.execCommand(cmd, false, null);
+}
+
+function openColorPopover(kind){
+  const pop = document.getElementById('colorPopover');
+  if(!pop) return;
+  const alreadyOpenSameKind = pop.classList.contains('open') && pop.dataset.kind === kind;
+  if(alreadyOpenSameKind){
+    pop.classList.remove('open');
+    return;
+  }
+  const colors = kind === 'text' ? TEXT_COLORS : HILITE_COLORS;
+  pop.dataset.kind = kind;
+  pop.innerHTML = colors.map(c => `
+    <button type="button" class="color-swatch" style="background:${c.hex}" title="${c.name}"
+      onmousedown="event.preventDefault()" onclick="applyColor('${kind}','${c.hex}')"></button>
+  `).join('');
+  pop.classList.add('open');
+}
+
+function applyColor(kind, hex){
+  const editor = document.getElementById('noticeContentEditor');
+  editor.focus();
+  if(kind === 'text'){
+    document.execCommand('foreColor', false, hex);
+    lastTextColor = hex;
+  }else{
+    // hiliteColor는 사파리 등 일부 브라우저에서 안 먹을 수 있어 backColor로 대체 시도합니다.
+    const ok = document.execCommand('hiliteColor', false, hex);
+    if(!ok) document.execCommand('backColor', false, hex);
+    lastHiliteColor = hex;
+  }
+  const pop = document.getElementById('colorPopover');
+  if(pop) pop.classList.remove('open');
+}
+
+function handleEditorKeydown(e){
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const ctrl = isMac ? e.metaKey : e.ctrlKey;
+  if(!ctrl) return; // Ctrl+Z / Ctrl+Y는 가로채지 않고 브라우저 기본 실행취소를 그대로 씁니다.
+
+  const key = e.key.toLowerCase();
+  if(key === 'b'){ e.preventDefault(); applyFormat('bold'); }
+  else if(key === 'i'){ e.preventDefault(); applyFormat('italic'); }
+  else if(key === 'u'){ e.preventDefault(); applyFormat('underline'); }
+  else if(e.shiftKey && key === 'h'){ e.preventDefault(); applyColor('hilite', lastHiliteColor); }
+  else if(e.shiftKey && key === 'c'){ e.preventDefault(); applyColor('text', lastTextColor); }
+}
+
 let lastNotices = [];
 
 function escapeHtml(str){
@@ -1248,7 +1344,7 @@ function renderNoticeList(){
     <div class="notice-item">
       <div class="n-title">${escapeHtml(n.title)}</div>
       <div class="n-date">${n.date} · 작성자: 관리자</div>
-      <div class="n-content">${escapeHtml(n.content)}</div>
+      <div class="n-content">${n.content}</div>
       ${isNoticeAdmin ? `<div class="n-del" onclick="deleteNotice(${n.id})">삭제</div>` : ''}
     </div>
   `).join('');
@@ -1278,22 +1374,56 @@ function toggleNoticeAdmin(){
   formWrap.innerHTML = `
     <div class="notice-form">
       <input type="text" id="noticeTitleInput" placeholder="제목">
-      <textarea id="noticeContentInput" placeholder="내용을 입력하세요"></textarea>
+      <div class="editor-toolbar">
+        <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="applyFormat('bold')"><b>B</b></button>
+        <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="applyFormat('italic')"><i>I</i></button>
+        <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="applyFormat('underline')"><u>U</u></button>
+        <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="openColorPopover('text')">A</button>
+        <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="openColorPopover('hilite')">🖍</button>
+        <div class="color-popover" id="colorPopover"></div>
+      </div>
+      <div class="editor-hint">단축키: Ctrl+B 굵게 · Ctrl+I 기울임 · Ctrl+U 밑줄 · Ctrl+Shift+C 글자색 · Ctrl+Shift+H 형광펜 · Ctrl+Z 실행취소<br>작성 중인 내용은 자동으로 임시저장되어, 실수로 뒤로가기를 눌러도 다시 열면 이어서 쓸 수 있습니다.</div>
+      <div class="notice-editor" id="noticeContentEditor" contenteditable="true" onkeydown="handleEditorKeydown(event)"></div>
       <div class="form-actions">
-        <button class="ghost" type="button" onclick="document.getElementById('noticeTitleInput').value='';document.getElementById('noticeContentInput').value='';">지우기</button>
+        <button class="ghost" type="button" onclick="document.getElementById('noticeTitleInput').value='';document.getElementById('noticeContentEditor').innerHTML='';clearNoticeDraft();">지우기</button>
         <button class="primary" type="button" onclick="submitNotice()">등록</button>
       </div>
     </div>
   `;
   renderNoticeList();
+
+  // 임시저장된 초안이 있으면 복원
+  const titleEl = document.getElementById('noticeTitleInput');
+  const editorEl = document.getElementById('noticeContentEditor');
+  const savedTitle = localStorage.getItem('noticeDraftTitle');
+  const savedContent = localStorage.getItem('noticeDraftContent');
+  if(savedTitle) titleEl.value = savedTitle;
+  if(savedContent) editorEl.innerHTML = savedContent;
+
+  titleEl.addEventListener('input', saveNoticeDraft);
+  editorEl.addEventListener('input', saveNoticeDraft);
+}
+
+function saveNoticeDraft(){
+  const titleEl = document.getElementById('noticeTitleInput');
+  const editorEl = document.getElementById('noticeContentEditor');
+  if(!titleEl || !editorEl) return;
+  localStorage.setItem('noticeDraftTitle', titleEl.value);
+  localStorage.setItem('noticeDraftContent', editorEl.innerHTML);
+}
+
+function clearNoticeDraft(){
+  localStorage.removeItem('noticeDraftTitle');
+  localStorage.removeItem('noticeDraftContent');
 }
 
 async function submitNotice(){
   const titleEl = document.getElementById('noticeTitleInput');
-  const contentEl = document.getElementById('noticeContentInput');
+  const editorEl = document.getElementById('noticeContentEditor');
   const title = titleEl.value.trim();
-  const content = contentEl.value.trim();
-  if(!title || !content){ alert('제목과 내용을 모두 입력해주세요.'); return; }
+  const content = editorEl.innerHTML.trim();
+  const plainCheck = editorEl.textContent.trim();
+  if(!title || !plainCheck){ alert('제목과 내용을 모두 입력해주세요.'); return; }
 
   try{
     const res = await fetch('/api/notices', {
@@ -1305,7 +1435,8 @@ async function submitNotice(){
     if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     lastNotices = data.notices || [];
     titleEl.value = '';
-    contentEl.value = '';
+    editorEl.innerHTML = '';
+    clearNoticeDraft();
     renderNoticeList();
   }catch(err){
     alert('등록 실패: ' + (err.message || err));
