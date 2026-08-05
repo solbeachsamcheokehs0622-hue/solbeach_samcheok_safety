@@ -303,7 +303,12 @@
   .notice-detail-head h2{ font-size:18px; font-weight:800; margin:6px 0 6px; }
   .notice-detail-head .n-date{ font-size:11px; color:var(--ink-soft); }
   .notice-detail-body{
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 16px;
     font-size:13.5px; color:var(--ink); line-height:1.75;
+    box-shadow:0 1px 3px rgba(18,60,99,0.06);
   }
   .notice-detail-body div{ min-height:1em; }
 
@@ -689,6 +694,7 @@ const HOME_HERO_IMAGE = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBD
 const CATEGORIES = [
   {
     key: "policy", short: "안전보건경영방침", name: "안전보건 경영방침",
+    subtitle: "안전보건 목표와 경영진의 실천 의지",
     desc: "안전보건경영방침은 최고경영자가 안전보건에 대한 경영 의지와 기본방향을 선언하고,<br>조직의 모든 안전보건 활동의 기준이 되는 문서입니다.",
     docs: [],
     /* 연도가 늘어나면 이 배열에 객체만 추가하면 됩니다 (예: 2027년 자료 준비되면 추가) */
@@ -700,6 +706,7 @@ const CATEGORIES = [
   },
   {
     key: "plan", short: "안전보건관리계획서", name: "안전보건관리계획서",
+    subtitle: "연간 안전보건 추진계획 및 실행과제",
     desc: "안전보건관리계획서는 사업장의 안전보건 목표를 달성하기 위해<br>연간 안전보건 활동, 추진일정, 담당자 및 세부 실행계획을 수립한 문서입니다.",
     docs: [
       { title:"안전보건관리계획서", date:"",
@@ -708,6 +715,7 @@ const CATEGORIES = [
   },
   {
     key: "rules", short: "안전보건관리규정", name: "안전보건관리규정",
+    subtitle: "안전보건 업무 기준과 역할·책임",
     desc: "사업장의 안전보건관리에 관한 조직, 책임 및 절차를 규정한 문서입니다.",
     docs: [
       { title:"안전보건관리규정", date:"",
@@ -716,6 +724,7 @@ const CATEGORIES = [
   },
   {
     key: "serious-accident", short: "중대재해 대응 매뉴얼", name: "중대재해 대응 매뉴얼",
+    subtitle: "중대산업재해 발생 시 보고·조치 절차",
     desc: "사망·중상해 등 중대재해 발생 시 초기 대응 및 보고, 사고 수습 절차를 규정한 매뉴얼입니다.",
     docs: [
       { title:"중대재해 대응 매뉴얼", date:"",
@@ -724,6 +733,7 @@ const CATEGORIES = [
   },
   {
     key: "risk-assessment", short: "위험성평가", name: "위험성평가",
+    subtitle: "작업별 위험요인 및 개선대책",
     desc: "부서·공정별 위험요인을 식별·평가하고 개선대책을 수립한 결과를 담은 문서입니다.",
     docs: [
       { title:"2026년 위험성평가", date:"",
@@ -757,6 +767,7 @@ const CATEGORIES = [
   },
   {
     key: "committee", short: "산업안전보건위원회", name: "산업안전보건위원회",
+    subtitle: "노사 협의 안건·회의록 및 의결사항",
     desc: "노·사가 공동으로 참여하여 산업안전보건 관련 주요 사항을 심의·의결하는 산업안전보건위원회 회의자료입니다.",
     docs: [
       { title:"2026년 산업안전보건위원회", date:"",
@@ -769,7 +780,7 @@ const CATEGORIES = [
   },
   {
     key: "contractor", short: "도급사업 안전보건 협의체", name: "도급사업 안전보건 협의체",
-    subtitle: "협력업체 회의록 및 점검자료",
+    subtitle: "협력업체 회의록 및 합동점검 자료",
     desc: "도급사업의 안전보건 확보를 위해 협력업체와 공동으로 운영하는 안전보건협의체 회의자료입니다.",
     docs: [
       { title:"2026년 도급사업 안전보건협의체", date:"",
@@ -782,6 +793,7 @@ const CATEGORIES = [
   },
   {
     key: "fire-plan", short: "소방계획서", name: "소방계획서",
+    subtitle: "화재예방·초기대응 및 피난계획",
     desc: "화재 예방 및 초기 대응, 피난·소방훈련 등을 포함한 소방안전관리 계획서입니다.",
     docs: [
       { title:"소방계획서", date:"",
@@ -789,8 +801,8 @@ const CATEGORIES = [
     ]
   },
   {
-    key: "crisis", short: "비상·위기 대응매뉴얼", name: "비상·위기 대응매뉴얼",
-    subtitle: "화재·지진·정전·가스누출·태풍 등",
+    key: "crisis", short: "위기상황 대응 매뉴얼", name: "위기상황 대응 매뉴얼",
+    subtitle: "화재·지진·정전·가스누출·태풍 대응절차",
     desc: "다중이용시설에서의 화재·지진·정전·가스누출·태풍 등 중대재해를 제외한 각종 위기상황 발생 시 대응 절차를 규정한 매뉴얼입니다.",
     docs: [
       { title:"다중이용시설 위기상황 매뉴얼", date:"",
@@ -799,6 +811,7 @@ const CATEGORIES = [
   },
   {
     key: "msds", short: "물질안전보건자료(MSDS)", name: "물질안전보건자료(MSDS)",
+    subtitle: "화학물질 유해성·보호구 및 응급조치 정보",
     desc: "사업장에서 취급하는 화학물질의 유해·위험성, 안전한 취급방법 및 응급조치 사항을 제공하는 자료입니다.",
     docs: []
   }
@@ -874,10 +887,17 @@ const EMERGENCY_GROUPS = [
     ]
   },
   {
+    title: "안전보건 관계기관",
+    contacts: [
+      { who:"고용노동부 태백지청", role:"노동관계법 위반 신고 시", num:"033-550-8633" },
+      { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" }
+    ]
+  },
+  {
     title: "설비·기관별 연락",
     contacts: [
-      { who:"삼척소방서", role:"대표전화 · 일반 문의 및 업무연락", num:"033-572-9119" },
-      { who:"삼척경찰서", role:"대표전화 · 일반 문의 및 업무연락", num:"033-571-2224" },
+      { who:"삼척소방서", role:"일반 문의 및 업무연락", num:"033-572-9119" },
+      { who:"삼척경찰서", role:"일반 문의 및 업무연락", num:"033-571-2224" },
       { who:"한국전력공사 삼척지사", role:"정전·전기설비 이상 시", num:"033-570-2123" },
       { who:"한국가스안전공사 강원영동지사", role:"가스 누출·사고 시", num:"033-643-0019" },
       { who:"한국전기안전공사 강원동부지사", role:"전기설비 점검·사고 시", num:"033-902-3100" },
@@ -886,14 +906,12 @@ const EMERGENCY_GROUPS = [
     ]
   },
   {
-    title: "의료·관계기관",
+    title: "의료기관",
     contacts: [
       { who:"삼척시 보건소", role:"응급 의료상담 시", num:"033-572-4000" },
       { who:"삼척의료원", role:"응급환자 이송·치료 시", num:"033-572-1141" },
       { who:"근로복지공단 동해병원", role:"산재 치료·요양 시", num:"033-530-3100" },
-      { who:"동해동인병원", role:"종합병원 · 응급 진료 시", num:"033-530-0114" },
-      { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" },
-      { who:"고용노동부 태백지청", role:"노동관계법 위반 신고 시", num:"033-550-8633" }
+      { who:"동해동인병원", role:"종합병원 · 응급 진료 시", num:"033-530-0114" }
     ]
   }
 ];
