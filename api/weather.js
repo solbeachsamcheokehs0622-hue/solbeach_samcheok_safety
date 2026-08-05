@@ -58,23 +58,20 @@ function computeFeelsLike(ta, rh, windMs) {
 
 function classifyLevel(ta, feelsLike) {
   if (ta >= 27) {
-    if (feelsLike >= 38) return { cls: 'lv-danger', label: '온열질환 위험' };
-    if (feelsLike >= 35) return { cls: 'lv-warning', label: '온열질환 경고' };
-    if (feelsLike >= 33) return { cls: 'lv-caution', label: '온열질환 주의' };
+    if (feelsLike >= 38) return { cls: 'lv-danger', label: '위험' };
+    if (feelsLike >= 35) return { cls: 'lv-warning', label: '경보' };
+    if (feelsLike >= 33) return { cls: 'lv-caution', label: '주의' };
     return { cls: 'lv-normal', label: '정상' };
   }
   if (ta <= 10) {
-    if (feelsLike <= -15) return { cls: 'lv-danger', label: '한랭질환 위험' };
-    if (feelsLike <= -12) return { cls: 'lv-warning', label: '한랭질환 경고' };
-    if (feelsLike <= -10) return { cls: 'lv-caution', label: '한랭질환 주의' };
+    if (feelsLike <= -15) return { cls: 'lv-danger', label: '위험' };
+    if (feelsLike <= -12) return { cls: 'lv-warning', label: '경보' };
+    if (feelsLike <= -10) return { cls: 'lv-caution', label: '주의' };
     return { cls: 'lv-normal', label: '정상' };
   }
   return { cls: 'lv-normal', label: '정상' };
 }
 
-// 일부 정부 공공데이터 API가 TLS 인증서 체인 문제로 fetch에서
-// 실패하는 경우가 있어, Node 기본 https 모듈로 직접 호출하고
-// 이 호출에 한해 인증서 검증을 완화합니다. (외부 패키지 설치 불필요)
 const https = require('https');
 
 function fetchJson(url, timeoutMs = 7000) {
@@ -97,7 +94,6 @@ function fetchJson(url, timeoutMs = 7000) {
     });
     req.on('error', (err) => safeReject(err));
 
-    // 소켓 idle 타임아웃이 아니라, 요청 시작부터 전체 소요시간을 직접 재는 워치독입니다.
     const timer = setTimeout(() => {
       safeReject(new Error('요청 시간 초과 (전체 소요시간 기준)'));
       req.destroy();
