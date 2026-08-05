@@ -38,7 +38,7 @@
   .home-hero{
     background:linear-gradient(155deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
     color:#fff;
-    padding:36px 24px 30px;
+    padding:22px 24px 16px;
     text-align:center;
   }
   .home-hero .brand{
@@ -46,7 +46,7 @@
     font-weight:700;
     letter-spacing:0.14em;
     color:#AFCBE3;
-    margin-bottom:10px;
+    margin-bottom:6px;
   }
   .home-hero .sub-brand{
     font-size:14px;
@@ -142,8 +142,15 @@
     font-size:19px;
     background:rgba(29,111,176,0.1);
   }
-  .home-tile.tile-report .ic{ background:rgba(216,85,61,0.12); }
+  .home-tile.tile-notice .ic{ background:rgba(242,169,59,0.2); }
+  .home-tile.tile-library .ic{ background:rgba(29,111,176,0.14); }
+  .home-tile.tile-emergency .ic{ background:rgba(63,169,197,0.2); }
+  .home-tile.tile-report .ic{ background:rgba(216,85,61,0.16); }
   .home-tile .label{ font-size:14px; font-weight:700; }
+
+  /* 시트가 완전히 열리기 전에는 타일 클릭을 막아 오클릭을 방지합니다 */
+  .home-tiles{ pointer-events:none; }
+  .home-sheet.settled .home-tiles{ pointer-events:auto; }
 
   /* ===================== 상단 네비게이션 (홈 이외 화면) ===================== */
   .navbar{
@@ -409,6 +416,24 @@
     background:#D8553D; color:#fff; font-weight:700; font-size:14.5px;
     padding:14px 22px; border-radius:12px; text-decoration:none;
   }
+  .rules-box{
+    margin-top:16px;
+    background:rgba(242,169,59,0.08);
+    border:1px solid rgba(242,169,59,0.35);
+    border-radius:12px;
+    padding:14px 16px;
+    text-align:left;
+  }
+  .rules-box .rules-title{
+    font-size:12.5px;
+    font-weight:800;
+    color:#8A6D10;
+    text-align:center;
+    margin:0 0 10px;
+  }
+  .rules-box ol{ margin:0 0 10px; padding-left:18px; font-size:12px; color:var(--ink); line-height:1.65; }
+  .rules-box li{ margin-bottom:4px; }
+  .rules-box .warn{ font-size:11.5px; font-weight:700; color:#B23F28; text-align:center; margin:0; }
 
   /* ===================== 기준 보기 바텀시트 ===================== */
   .sheet-overlay{
@@ -653,12 +678,23 @@ const STAGES = [
 ];
 
 const EMERGENCY_CONTACTS = [
-  { who:"현장 안전관리자", role:"EHS팀", num:"010-0000-0000" },
-  { who:"위기상황 상황실", role:"당직", num:"033-000-0000" },
-  { who:"응급실 연계병원", role:"삼척의료원", num:"033-000-0000" }
+  { who:"안전관리자", role:"한국중부EHS/삼척 · 사고·위험 발견 시", num:"033-803-7840" },
+  { who:"삼척소방서", role:"화재·구조 · 급할 때는 119", num:"033-572-9119" },
+  { who:"삼척경찰서", role:"사건·사고 · 급할 때는 112", num:"033-571-2224" },
+  { who:"한국전력공사 삼척지사", role:"정전·전기설비 이상 시", num:"033-570-2123" },
+  { who:"한국가스안전공사 강원영동지사", role:"가스 누출·사고 시", num:"033-643-0019" },
+  { who:"한국전기안전공사 강원동부지사", role:"전기설비 점검·사고 시", num:"033-902-3100" },
+  { who:"동해엘리베이터", role:"승강기 고장·사고 시", num:"033-521-0482" },
+  { who:"삼척시청 재난안전상황실", role:"재난·안전사고 신고 시", num:"033-570-3119" },
+  { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" },
+  { who:"고용노동부 태백지청", role:"노동관계법 위반 신고 시", num:"033-550-8633" },
+  { who:"삼척시 보건소", role:"응급 의료상담 시", num:"033-572-4000" },
+  { who:"삼척의료원", role:"응급환자 이송·치료 시", num:"033-572-1141" },
+  { who:"근로복지공단 동해병원", role:"산재 치료·요양 시", num:"033-530-3100" },
+  { who:"동해동인병원", role:"종합병원 · 응급 진료 시", num:"033-530-0114" }
 ];
 
-const KAKAO_REPORT_URL = "https://open.kakao.com/o/여기에_기존_신고채널_링크";
+const KAKAO_REPORT_URL = "https://open.kakao.com/o/gCWyifEi";
 
 /* ============================================================
    라우팅 / 렌더
@@ -740,18 +776,23 @@ function renderHome(){
         <div class="handle-label" id="homeSheetLabel">메뉴 보기 ▲</div>
       </div>
       <div class="home-tiles">
-        <a class="home-tile" href="#" onclick="navigate('notice');return false;">
+        <a class="home-tile tile-notice" href="#" onclick="navigate('notice');return false;">
           <span class="ic">📢</span><span class="label">최신공지</span>
         </a>
-        <a class="home-tile" href="#" onclick="navigate('library');return false;">
+        <a class="home-tile tile-library" href="#" onclick="navigate('library');return false;">
           <span class="ic">📁</span><span class="label">안전보건자료실</span>
         </a>
-        <a class="home-tile" href="#" onclick="navigate('emergency');return false;">
+        <a class="home-tile tile-emergency" href="#" onclick="navigate('emergency');return false;">
           <span class="ic">📞</span><span class="label">비상연락망</span>
         </a>
         <a class="home-tile tile-report" href="#" onclick="navigate('report');return false;">
           <span class="ic">⚠️</span><span class="label">안전신고제</span>
         </a>
+      </div>
+      <div class="footnote">
+        본 페이지는 사업장 게시 의무 자료의 열람 편의를 위해 제공됩니다.<br/>
+        원본 서류는 EHS팀에서 관리하며, 문의사항은 EHS팀으로 연락 바랍니다.<br/>
+        EHS 담당자 : 033-803-7840 / 내선전화 : 7840
       </div>
     </div>
   `;
@@ -871,6 +912,14 @@ function renderReport(){
         <p>현장의 위험요인이나 아차사고를 발견하셨다면<br>아래 채널로 바로 신고해주세요.</p>
         <a class="report-btn" href="${KAKAO_REPORT_URL}" target="_blank" rel="noopener">카카오톡 신고 채널로 이동</a>
       </div>
+      <div class="rules-box">
+        <div class="rules-title">☆ 가입자 준수사항(필독) ☆</div>
+        <ol>
+          <li>가입자 준수사항과 상단 고정 글을 꼭! 읽어주시기 바랍니다.</li>
+          <li>가입자는 반드시 프로필을 "부서_성명"으로 변경 부탁드립니다. (신원 확인 목적)</li>
+        </ol>
+        <p class="warn">* 미준수 시 강퇴 조치</p>
+      </div>
     </div>
   `;
 }
@@ -931,9 +980,16 @@ function initHomeSheet(){
   if(!sheet || !handle) return;
 
   const setOpen = (open) => {
+    sheet.classList.remove('settled'); // 트랜지션이 끝나기 전까지는 타일 클릭 잠금
     sheet.classList.toggle('open', open);
     if(label) label.textContent = open ? '메뉴 닫기 ▼' : '메뉴 보기 ▲';
   };
+
+  // 슬라이드 애니메이션이 완전히 끝난 뒤에만 타일이 눌리도록 함
+  sheet.addEventListener('transitionend', (e) => {
+    if(e.propertyName !== 'transform') return;
+    if(sheet.classList.contains('open')) sheet.classList.add('settled');
+  });
 
   let startY = null;
   let lastTouchHandled = 0;
