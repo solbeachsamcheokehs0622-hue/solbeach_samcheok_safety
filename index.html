@@ -916,7 +916,7 @@ function renderNotice(){
 function renderEmergency(){
   return `
     ${navbarHTML('비상연락망')}
-    <div class="page-head"><h2>비상연락망</h2><p class="note">현장에서 즉시 연락 가능한 비상연락처입니다. 누르면 바로 통화가 연결됩니다.</p></div>
+    <div class="page-head"><h2>비상연락망</h2><p class="note">현장에서 즉시 연락 가능한 비상연락처입니다.<br>버튼을 누르면 바로 통화가 연결됩니다.</p></div>
     <div class="call-list">
       ${EMERGENCY_CONTACTS.map(c => `
         <a class="call-item" href="tel:${c.num.replace(/-/g,'')}">
