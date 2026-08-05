@@ -371,6 +371,23 @@
     white-space:nowrap;
   }
 
+  /* 기상특보 — 평소엔 없다가, 삼척 관련 특보가 있을 때만 나타납니다 */
+  .advisory-box{
+    display:none;
+    align-items:center;
+    gap:8px;
+    background:rgba(216,85,61,0.1);
+    border:1px solid rgba(216,85,61,0.35);
+    border-radius:10px;
+    padding:9px 11px;
+    margin-top:10px;
+    font-size:11.5px;
+    font-weight:700;
+    color:#B23F28;
+  }
+  .advisory-box.show{ display:flex; }
+  .advisory-box .adv-ic{ font-size:15px; flex-shrink:0; }
+
   /* 정상/주의/경고/위험 4단계 배지 — 항상 노출, 현재 단계만 강조 */
   .lvl-scale{
     display:flex;
@@ -831,6 +848,10 @@ function weatherCardHTML(flush){
         <span class="wi">🌤️</span>
         <span class="w-temp">날씨 정보 준비중</span>
       </div>
+      <div class="advisory-box" id="advisoryBox">
+        <span class="adv-ic">⚠️</span>
+        <span id="advisoryText"></span>
+      </div>
       <div class="lvl-scale">
         <button class="lvl-pill lvl-normal" data-level="normal" onclick="handleLevelPillClick('normal')">정상</button>
         <button class="lvl-pill lvl-caution" data-level="caution" onclick="handleLevelPillClick('caution')">주의</button>
@@ -895,7 +916,6 @@ function renderHome(){
 function renderLibrary(){
   return `
     ${navbarHTML('안전보건 자료실')}
-    ${weatherCardHTML()}
     <div class="lib-list">
       ${CATEGORIES.map((c,i) => `
         <div class="lib-item" onclick="navigate('category','${c.key}')">
@@ -919,7 +939,6 @@ function renderCategory(key){
 
   return `
     ${navbarHTML(cat.name)}
-    ${weatherCardHTML()}
     <div class="section">
       <div class="cat-head">
         <span class="num">${num}</span>
@@ -1205,14 +1224,27 @@ async function loadWeather(){
     if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
 
     lastWeatherData = data;
-    const icon = weatherIcon(data.temp);
+    const icon = data.icon || '🌤️';
     card.className = `weather-card ${data.level.cls}${flushClass}`;
     card.querySelector('.w-row1').innerHTML = `
       <span class="wi">${icon}</span>
-      <span class="w-temp">체감 ${data.feelsLike}℃</span>
+      <span class="w-temp">체감온도 ${data.feelsLike}℃</span>
     `;
-    card.querySelector('.w-sub').textContent = `기온 ${data.temp}℃ · 습도 ${data.humidity ?? '-'}%`;
+    const condText = data.condition ? `${data.condition} · ` : '';
+    card.querySelector('.w-sub').textContent = `${condText}기온 ${data.temp}℃ · 습도 ${data.humidity ?? '-'}%`;
     updateActivePill(card, data.level.cls);
+
+    const advBox = card.querySelector('#advisoryBox');
+    const advText = card.querySelector('#advisoryText');
+    if(advBox && advText){
+      if(data.advisory && data.advisory.active && data.advisory.items && data.advisory.items.length){
+        const titles = data.advisory.items.map(i => i.title).filter(Boolean);
+        advText.textContent = titles.length ? titles.join(', ') + ' 발효 중' : '삼척 지역 기상특보 발효 중';
+        advBox.classList.add('show');
+      }else{
+        advBox.classList.remove('show');
+      }
+    }
   }catch(err){
     card.className = `weather-card lv-error${flushClass}`;
     card.querySelector('.w-row1').innerHTML = `<span class="wi">🌤️</span><span class="w-temp">날씨 정보를 불러오지 못했습니다</span>`;
