@@ -11,8 +11,6 @@ const MAX_NOTICES = 100;
 
 function upstash(method, path, body) {
   return new Promise((resolve, reject) => {
-    // Vercel의 자체 KV는 종료되었고 현재는 Upstash 마켓플레이스 연동을 사용합니다.
-    // 연동 방식에 따라 환경변수 이름이 다를 수 있어 둘 다 확인합니다.
     const base = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
     if (!base || !token) {
@@ -48,13 +46,19 @@ function upstash(method, path, body) {
 
 async function readNotices() {
   const result = await upstash('GET', `/get/${NOTICES_KEY}`);
-  if (!result.result) return [];
+  if (result && result.error) {
+    throw new Error('KV 조회 실패: ' + result.error);
+  }
+  if (!result || !result.result) return [];
   try { return JSON.parse(result.result); }
   catch (e) { return []; }
 }
 
 async function writeNotices(notices) {
-  await upstash('POST', `/set/${NOTICES_KEY}`, JSON.stringify(notices));
+  const result = await upstash('POST', `/set/${NOTICES_KEY}`, JSON.stringify(notices));
+  if (!result || result.result !== 'OK') {
+    throw new Error('KV 저장 실패: ' + JSON.stringify(result));
+  }
 }
 
 function readBody(req) {
