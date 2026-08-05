@@ -128,7 +128,8 @@ module.exports = async (req, res) => {
       const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
       const dateStr = now.toISOString().slice(0, 10);
 
-      notices.unshift({ id: Date.now(), title, content, date: dateStr });
+      const important = payload.important === true;
+      notices.unshift({ id: Date.now(), title, content, date: dateStr, important });
       const trimmed = notices.slice(0, MAX_NOTICES);
 
       await putFile(trimmed, sha, `공지사항 추가: ${title}`);
