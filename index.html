@@ -427,11 +427,19 @@
     border-color:currentColor;
     transform:scale(1.05);
   }
-  .lvl-tap-hint{
-    text-align:center;
-    font-size:10.5px;
-    color:var(--ink-soft);
-    margin-top:7px;
+  .lvl-pill.active::after{
+    content:"기준 확인 ›";
+    position:absolute;
+    top:-9px;
+    right:-3px;
+    font-size:8px;
+    font-weight:800;
+    color:#fff;
+    background:var(--blue);
+    padding:1.5px 5px;
+    border-radius:7px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.15);
+    white-space:nowrap;
   }
 
   /* ===================== 카테고리 상세 (기존 스타일 재사용) ===================== */
@@ -855,7 +863,6 @@ function weatherCardHTML(flush){
         <button class="lvl-pill lvl-warning" data-level="warning" onclick="handleLevelPillClick('warning')">경고</button>
         <button class="lvl-pill lvl-danger" data-level="danger" onclick="handleLevelPillClick('danger')">위험</button>
       </div>
-      <div class="lvl-tap-hint">탭하여 체감온도 대응기준 확인 ›</div>
       <div class="w-row2">
         <span class="w-sub">쏠비치 삼척 인근 실시간 관측</span>
         <a class="w-naver-link" href="https://weather.naver.com/today/01230106" target="_blank" rel="noopener">네이버 날씨 →</a>
