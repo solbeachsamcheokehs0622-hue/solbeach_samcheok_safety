@@ -38,7 +38,7 @@
   .home-hero{
     background:linear-gradient(155deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
     color:#fff;
-    padding:22px 24px 16px;
+    padding:15px 24px 11px;
     text-align:center;
   }
   .home-hero .brand{
@@ -46,7 +46,7 @@
     font-weight:700;
     letter-spacing:0.14em;
     color:#AFCBE3;
-    margin-bottom:6px;
+    margin-bottom:4px;
   }
   .home-hero .sub-brand{
     font-size:14px;
@@ -142,10 +142,11 @@
     font-size:19px;
     background:rgba(29,111,176,0.1);
   }
-  .home-tile.tile-notice .ic{ background:rgba(242,169,59,0.2); }
-  .home-tile.tile-library .ic{ background:rgba(29,111,176,0.14); }
-  .home-tile.tile-emergency .ic{ background:rgba(63,169,197,0.2); }
-  .home-tile.tile-report .ic{ background:rgba(216,85,61,0.16); }
+  .home-tile.tile-notice .ic{ background:rgba(242,169,59,0.2); color:var(--sun); }
+  .home-tile.tile-library .ic{ background:rgba(29,111,176,0.14); color:var(--blue); }
+  .home-tile.tile-emergency .ic{ background:rgba(63,169,197,0.2); color:var(--sea-foam); }
+  .home-tile.tile-report .ic{ background:rgba(216,85,61,0.16); color:#D8553D; }
+  .home-tile .ic svg{ display:block; }
   .home-tile .label{ font-size:14px; font-weight:700; }
 
   /* 시트가 완전히 열리기 전에는 타일 클릭을 막아 오클릭을 방지합니다 */
@@ -727,9 +728,9 @@ function currentRoute(){
 function navbarHTML(title){
   return `
     <div class="navbar">
-      <div class="nav-btn" onclick="navigate('home')">🏠 홈</div>
+      <div class="nav-btn" onclick="history.back()">← 뒤로</div>
       <div class="nav-title">${title}</div>
-      <div class="nav-btn" onclick="navigate('library')">자료실 ☰</div>
+      <div class="nav-btn" onclick="navigate('home')">🏠 홈</div>
     </div>
   `;
 }
@@ -777,16 +778,20 @@ function renderHome(){
       </div>
       <div class="home-tiles">
         <a class="home-tile tile-notice" href="#" onclick="navigate('notice');return false;">
-          <span class="ic">📢</span><span class="label">최신공지</span>
+          <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1z" fill="currentColor"/><path d="M15 8a4 4 0 0 1 0 8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M17.6 5.3a8 8 0 0 1 0 13.4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/></svg></span>
+          <span class="label">최신공지</span>
         </a>
         <a class="home-tile tile-library" href="#" onclick="navigate('library');return false;">
-          <span class="ic">📁</span><span class="label">안전보건자료실</span>
+          <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" fill="currentColor"/></svg></span>
+          <span class="label">안전보건자료실</span>
         </a>
         <a class="home-tile tile-emergency" href="#" onclick="navigate('emergency');return false;">
-          <span class="ic">📞</span><span class="label">비상연락망</span>
+          <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.2c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" fill="currentColor"/></svg></span>
+          <span class="label">비상연락망</span>
         </a>
         <a class="home-tile tile-report" href="#" onclick="navigate('report');return false;">
-          <span class="ic">⚠️</span><span class="label">안전신고제</span>
+          <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3.2 21.6 20H2.4L12 3.2z" fill="currentColor"/><rect x="11.1" y="9.3" width="1.8" height="5.6" rx="0.9" fill="#fff"/><circle cx="12" cy="17.1" r="1.1" fill="#fff"/></svg></span>
+          <span class="label">안전신고제</span>
         </a>
       </div>
       <div class="footnote">
