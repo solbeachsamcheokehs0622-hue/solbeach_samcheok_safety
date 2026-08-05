@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>쏠비치 삼척 안전보건 자료실</title>
+
+<!-- PWA: 홈 화면에 추가하면 앱처럼 실행됩니다 -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#123C63">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="안전보건 게시판">
+<meta name="mobile-web-app-capable" content="yes">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -61,6 +72,29 @@
     margin:0;
     letter-spacing:-0.01em;
   }
+  .pwa-hint{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(29,111,176,0.06);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:9px 20px;
+    font-size:11.5px;
+    color:var(--ink);
+  }
+  .pwa-hint span{ flex:1; }
+  .pwa-hint button{
+    font-family:'Noto Sans KR',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+  .pwa-hint button:not(.pwa-close){ color:var(--blue); }
+  .pwa-hint .pwa-close{ color:var(--ink-soft); font-size:13px; padding:0 2px; }
+
   .home-image-slot{
     width:100%;
     display:block;
@@ -993,6 +1027,11 @@ function renderHome(){
       <h1>안전보건 게시판</h1>
     </div>
     ${weatherCardHTML(true)}
+    <div class="pwa-hint" id="pwaHint">
+      <span>📱 홈 화면에 추가하면 앱처럼 바로 열 수 있어요</span>
+      <button type="button" onclick="showPwaGuide()">방법 보기</button>
+      <button type="button" class="pwa-close" onclick="dismissPwaHint()">✕</button>
+    </div>
     <div class="home-image-slot">
       <img src="${HOME_HERO_IMAGE}" alt="쏠비치 삼척 안전보건 게시판">
     </div>
@@ -1245,12 +1284,39 @@ function render(){
   app.innerHTML = `<div class="wrap">${html}</div>`;
   wireYearAccordion();
   initHomeSheet();
+  initPwaHint();
   if(document.getElementById('weatherCard')) loadWeather();
   if(document.getElementById('noticeList')) loadNotices();
   if(document.getElementById('noticeDetail')) loadNoticeDetail(nid);
 }
 
 window.addEventListener('popstate', render);
+
+/* ============================================================
+   PWA 홈 화면 추가 안내
+   ============================================================ */
+function initPwaHint(){
+  const hint = document.getElementById('pwaHint');
+  if(!hint) return;
+  if(localStorage.getItem('pwaHintDismissed') === '1'){
+    hint.style.display = 'none';
+  }
+}
+
+function showPwaGuide(){
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const msg = isIOS
+    ? '아이폰(Safari)에서 홈 화면에 추가하는 방법\n\n① 화면 하단 공유 버튼(⬆️)을 누르세요\n② 아래로 스크롤해서 "홈 화면에 추가"를 누르세요\n③ 오른쪽 위 "추가"를 누르면 끝입니다\n\n이후로는 QR 없이 홈 화면 아이콘으로 바로 열립니다.'
+    : '안드로이드(Chrome)에서 홈 화면에 추가하는 방법\n\n① 오른쪽 위 점 3개(⋮) 메뉴를 누르세요\n② "앱 설치" 또는 "홈 화면에 추가"를 누르세요\n③ "설치"를 누르면 끝입니다\n\n이후로는 QR 없이 홈 화면 아이콘으로 바로 열립니다.';
+  alert(msg);
+}
+
+function dismissPwaHint(){
+  const hint = document.getElementById('pwaHint');
+  if(hint) hint.style.display = 'none';
+  localStorage.setItem('pwaHintDismissed', '1');
+}
 
 /* ============================================================
    홈 화면 하단 풀업 메뉴 시트 (스와이프로 열고 닫기)
