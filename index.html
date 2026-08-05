@@ -106,16 +106,18 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding:11px 0 8px;
+    padding:12px 0 10px;
     cursor:pointer;
     touch-action:none;
     user-select:none;
+    background:rgba(29,111,176,0.05);
+    border-bottom:1px solid var(--line);
   }
   .home-sheet-handle .grab{
     width:38px; height:4px; border-radius:999px;
-    background:var(--line); margin-bottom:6px;
+    background:rgba(29,111,176,0.35); margin-bottom:7px;
   }
-  .home-sheet-handle .handle-label{ font-size:11.5px; font-weight:700; color:var(--ink-soft); }
+  .home-sheet-handle .handle-label{ font-size:11.5px; font-weight:700; color:var(--blue); }
 
   .home-tiles{
     display:grid;
@@ -148,6 +150,7 @@
   .home-tile.tile-report .ic{ background:rgba(216,85,61,0.16); color:#D8553D; }
   .home-tile .ic svg{ display:block; }
   .home-tile .label{ font-size:14px; font-weight:700; }
+  .home-tile .desc{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
 
   /* 시트가 완전히 열리기 전에는 타일 클릭을 막아 오클릭을 방지합니다 */
   .home-tiles{ pointer-events:none; }
@@ -371,6 +374,13 @@
     white-space:nowrap;
   }
 
+  .w-stage-note{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-top:5px;
+  }
+  .w-stage-note b{ color:var(--ink); font-weight:700; }
+
   /* 기상특보 — 평소엔 없다가, 삼척 관련 특보가 있을 때만 나타납니다 */
   .advisory-box{
     display:none;
@@ -417,25 +427,11 @@
     border-color:currentColor;
     transform:scale(1.05);
   }
-  .lvl-pill.active::after{
-    content:"Click!";
-    position:absolute;
-    top:-10px;
-    right:-4px;
-    font-size:8px;
-    font-weight:800;
-    letter-spacing:0;
-    color:#fff;
-    background:#D8362A;
-    padding:1.5px 5px;
-    border-radius:7px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.2);
-    white-space:nowrap;
-    animation: clickHint 1.3s ease-in-out infinite;
-  }
-  @keyframes clickHint{
-    0%, 100% { transform:scale(1); }
-    50% { transform:scale(1.18); }
+  .lvl-tap-hint{
+    text-align:center;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-top:7px;
   }
 
   /* ===================== 카테고리 상세 (기존 스타일 재사용) ===================== */
@@ -848,6 +844,7 @@ function weatherCardHTML(flush){
         <span class="wi">🌤️</span>
         <span class="w-temp">날씨 정보 준비중</span>
       </div>
+      <div class="w-stage-note" id="wStageNote"></div>
       <div class="advisory-box" id="advisoryBox">
         <span class="adv-ic">⚠️</span>
         <span id="advisoryText"></span>
@@ -858,6 +855,7 @@ function weatherCardHTML(flush){
         <button class="lvl-pill lvl-warning" data-level="warning" onclick="handleLevelPillClick('warning')">경고</button>
         <button class="lvl-pill lvl-danger" data-level="danger" onclick="handleLevelPillClick('danger')">위험</button>
       </div>
+      <div class="lvl-tap-hint">탭하여 체감온도 대응기준 확인 ›</div>
       <div class="w-row2">
         <span class="w-sub">쏠비치 삼척 인근 실시간 관측</span>
         <a class="w-naver-link" href="https://weather.naver.com/today/01230106" target="_blank" rel="noopener">네이버 날씨 →</a>
@@ -883,24 +881,28 @@ function renderHome(){
     <div class="home-sheet" id="homeSheet">
       <div class="home-sheet-handle" id="homeSheetHandle">
         <div class="grab"></div>
-        <div class="handle-label" id="homeSheetLabel">메뉴 보기 ▲</div>
+        <div class="handle-label" id="homeSheetLabel">안전보건 메뉴 열기 ↑</div>
       </div>
       <div class="home-tiles">
         <a class="home-tile tile-notice" href="#" onclick="navigate('notice');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1z" fill="currentColor"/><path d="M15 8a4 4 0 0 1 0 8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M17.6 5.3a8 8 0 0 1 0 13.4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/></svg></span>
           <span class="label">공지사항</span>
+          <span class="desc">안전보건 공지사항 안내</span>
         </a>
         <a class="home-tile tile-library" href="#" onclick="navigate('library');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" fill="currentColor"/></svg></span>
           <span class="label">안전보건자료실</span>
+          <span class="desc">안전보건 게시자료</span>
         </a>
         <a class="home-tile tile-emergency" href="#" onclick="navigate('emergency');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.2c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" fill="currentColor"/></svg></span>
           <span class="label">비상연락망</span>
+          <span class="desc">사고·화재·시설 비상연락</span>
         </a>
         <a class="home-tile tile-report" href="#" onclick="navigate('report');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3.2 21.6 20H2.4L12 3.2z" fill="currentColor"/><rect x="11.1" y="9.3" width="1.8" height="5.6" rx="0.9" fill="#fff"/><circle cx="12" cy="17.1" r="1.1" fill="#fff"/></svg></span>
           <span class="label">안전신고제</span>
+          <span class="desc">위험요인 및 개선사항 신고</span>
         </a>
       </div>
       <div class="footnote">
@@ -1099,7 +1101,7 @@ function initHomeSheet(){
   const setOpen = (open) => {
     sheet.classList.remove('settled'); // 트랜지션이 끝나기 전까지는 타일 클릭 잠금
     sheet.classList.toggle('open', open);
-    if(label) label.textContent = open ? '메뉴 닫기 ▼' : '메뉴 보기 ▲';
+    if(label) label.textContent = open ? '메뉴 닫기 ↓' : '안전보건 메뉴 열기 ↑';
   };
 
   // 슬라이드 애니메이션이 완전히 끝난 뒤에만 타일이 눌리도록 함
@@ -1209,6 +1211,29 @@ function updateActivePill(card, cls){
   if(el) el.classList.add('active');
 }
 
+// 현재 단계 + 다음 단계로 넘어가는 기준을 함께 보여줍니다.
+// (더워질 때는 고용노동부 공식 폭염 대응기준, 추워질 때는 참고기준임을 함께 표기)
+function stageNoteText(temp, cls, label){
+  let next = '';
+  let source = '';
+  if(temp >= 27){
+    source = '고용노동부 기준';
+    if(cls === 'lv-normal') next = '33℃ 이상 시 주의';
+    else if(cls === 'lv-caution') next = '35℃ 이상 시 경보';
+    else if(cls === 'lv-warning') next = '38℃ 이상 시 위험';
+    else if(cls === 'lv-danger') next = '온열질환 위험 단계';
+  } else if(temp <= 10){
+    source = '참고기준';
+    if(cls === 'lv-normal') next = '-10℃ 이하 시 주의';
+    else if(cls === 'lv-caution') next = '-12℃ 이하 시 경보';
+    else if(cls === 'lv-warning') next = '-15℃ 이하 시 위험';
+    else if(cls === 'lv-danger') next = '한랭질환 위험 단계';
+  } else {
+    return `현재 단계: <b>${label}</b>`;
+  }
+  return `현재 단계: <b>${label}</b> · ${next} (${source})`;
+}
+
 let lastWeatherData = null;
 
 async function loadWeather(){
@@ -1233,6 +1258,9 @@ async function loadWeather(){
     const condText = data.condition ? `${data.condition} · ` : '';
     card.querySelector('.w-sub').textContent = `${condText}기온 ${data.temp}℃ · 습도 ${data.humidity ?? '-'}%`;
     updateActivePill(card, data.level.cls);
+
+    const stageNoteEl = card.querySelector('#wStageNote');
+    if(stageNoteEl) stageNoteEl.innerHTML = stageNoteText(data.temp, data.level.cls, data.level.label);
 
     const advBox = card.querySelector('#advisoryBox');
     const advText = card.querySelector('#advisoryText');
