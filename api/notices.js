@@ -9,10 +9,19 @@ const NOTICES_KEY = "solbeach_notices_v1";
 const ADMIN_PASSWORD = "4860";
 const MAX_NOTICES = 100;
 
+function cleanEnvValue(v) {
+  if (!v) return v;
+  let s = String(v).trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+}
+
 function upstash(method, path, body) {
   return new Promise((resolve, reject) => {
-    const base = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+    const base = cleanEnvValue(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
+    const token = cleanEnvValue(process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN);
     if (!base || !token) {
       reject(new Error('Redis 연결 환경변수가 없습니다. Vercel Storage에서 Upstash(Redis)를 만들고 이 프로젝트에 연결해주세요.'));
       return;
@@ -34,8 +43,23 @@ function upstash(method, path, body) {
       let data = '';
       resp.on('data', (c) => { data += c; });
       resp.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch (e) { reject(new Error('KV 응답 파싱 실패: ' + data.slice(0, 200))); }
+        let parsed;
+        try { parsed = JSON.parse(data); }
+        catch (e) { reject(new Error('KV 응답 파싱 실패: ' + data.slice(0, 200))); return; }
+
+        if (parsed && parsed.error) {
+          const debugInfo = {
+            httpStatus: resp.statusCode,
+            urlHostname: url.hostname,
+            tokenLength: token.length,
+            tokenStartsWithQuote: token.startsWith('"') || token.startsWith("'"),
+            tokenHasWhitespace: /\s/.test(token),
+            tokenPreview: token.slice(0, 4) + '...' + token.slice(-4),
+          };
+          reject(new Error(parsed.error + ' | debug: ' + JSON.stringify(debugInfo)));
+          return;
+        }
+        resolve(parsed);
       });
     });
     req.on('error', reject);
