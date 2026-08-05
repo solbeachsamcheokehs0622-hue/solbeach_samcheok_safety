@@ -1,15 +1,17 @@
 // ============================================================
-// 공지사항 API — Vercel KV(Upstash Redis) REST API를 직접 호출합니다.
-// 별도 npm 패키지 설치 없이 Node 기본 https 모듈만 사용합니다.
+// 공지사항 API — 외부 DB 없이 GitHub 저장소의 data/notices.json
+// 파일에 직접 커밋하는 방식으로 저장합니다. (Upstash/KV 불필요)
+// 필요한 환경변수: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO
+// (선택) GITHUB_BRANCH — 기본값 main
 // ============================================================
 
 const https = require('https');
 
-const NOTICES_KEY = "solbeach_notices_v1";
 const ADMIN_PASSWORD = "4860";
 const MAX_NOTICES = 100;
+const FILE_PATH = "data/notices.json";
 
-function cleanEnvValue(v) {
+function cleanEnv(v) {
   if (!v) return v;
   let s = String(v).trim();
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
@@ -18,48 +20,32 @@ function cleanEnvValue(v) {
   return s;
 }
 
-function upstash(method, path, body) {
+function githubRequest(method, path, bodyObj) {
   return new Promise((resolve, reject) => {
-    const base = cleanEnvValue(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
-    const token = cleanEnvValue(process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN);
-    if (!base || !token) {
-      reject(new Error('Redis 연결 환경변수가 없습니다. Vercel Storage에서 Upstash(Redis)를 만들고 이 프로젝트에 연결해주세요.'));
+    const token = cleanEnv(process.env.GITHUB_TOKEN);
+    if (!token) {
+      reject(new Error('GITHUB_TOKEN 환경변수가 설정되지 않았습니다.'));
       return;
     }
-    const url = new URL(base + path);
-    const bodyStr = body !== undefined ? body : undefined;
-
+    const bodyStr = bodyObj !== undefined ? JSON.stringify(bodyObj) : undefined;
     const options = {
       method,
-      hostname: url.hostname,
-      path: url.pathname + url.search,
+      hostname: 'api.github.com',
+      path,
       headers: {
         'Authorization': `Bearer ${token}`,
+        'User-Agent': 'solbeach-notices-app',
+        'Accept': 'application/vnd.github+json',
         ...(bodyStr ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) } : {})
       }
     };
-
     const req = https.request(options, (resp) => {
       let data = '';
       resp.on('data', (c) => { data += c; });
       resp.on('end', () => {
-        let parsed;
-        try { parsed = JSON.parse(data); }
-        catch (e) { reject(new Error('KV 응답 파싱 실패: ' + data.slice(0, 200))); return; }
-
-        if (parsed && parsed.error) {
-          const debugInfo = {
-            httpStatus: resp.statusCode,
-            urlHostname: url.hostname,
-            tokenLength: token.length,
-            tokenStartsWithQuote: token.startsWith('"') || token.startsWith("'"),
-            tokenHasWhitespace: /\s/.test(token),
-            tokenPreview: token.slice(0, 4) + '...' + token.slice(-4),
-          };
-          reject(new Error(parsed.error + ' | debug: ' + JSON.stringify(debugInfo)));
-          return;
-        }
-        resolve(parsed);
+        let parsed = null;
+        try { parsed = data ? JSON.parse(data) : null; } catch (e) { /* not JSON */ }
+        resolve({ status: resp.statusCode, body: parsed, raw: data });
       });
     });
     req.on('error', reject);
@@ -68,20 +54,39 @@ function upstash(method, path, body) {
   });
 }
 
-async function readNotices() {
-  const result = await upstash('GET', `/get/${NOTICES_KEY}`);
-  if (result && result.error) {
-    throw new Error('KV 조회 실패: ' + result.error);
+function repoInfo() {
+  const owner = cleanEnv(process.env.GITHUB_OWNER);
+  const repo = cleanEnv(process.env.GITHUB_REPO);
+  const branch = cleanEnv(process.env.GITHUB_BRANCH) || 'main';
+  if (!owner || !repo) {
+    throw new Error('GITHUB_OWNER / GITHUB_REPO 환경변수가 설정되지 않았습니다.');
   }
-  if (!result || !result.result) return [];
-  try { return JSON.parse(result.result); }
-  catch (e) { return []; }
+  return { owner, repo, branch };
 }
 
-async function writeNotices(notices) {
-  const result = await upstash('POST', `/set/${NOTICES_KEY}`, JSON.stringify(notices));
-  if (!result || result.result !== 'OK') {
-    throw new Error('KV 저장 실패: ' + JSON.stringify(result));
+async function getFile() {
+  const { owner, repo, branch } = repoInfo();
+  const res = await githubRequest('GET', `/repos/${owner}/${repo}/contents/${FILE_PATH}?ref=${branch}`);
+  if (res.status === 404) {
+    return { notices: [], sha: null };
+  }
+  if (res.status !== 200) {
+    throw new Error(`GitHub 조회 실패 (status ${res.status}): ${res.raw.slice(0, 200)}`);
+  }
+  const content = Buffer.from(res.body.content, 'base64').toString('utf-8');
+  let notices = [];
+  try { notices = JSON.parse(content); } catch (e) { notices = []; }
+  return { notices, sha: res.body.sha };
+}
+
+async function putFile(notices, sha, message) {
+  const { owner, repo, branch } = repoInfo();
+  const content = Buffer.from(JSON.stringify(notices, null, 2)).toString('base64');
+  const payload = { message, content, branch };
+  if (sha) payload.sha = sha;
+  const res = await githubRequest('PUT', `/repos/${owner}/${repo}/contents/${FILE_PATH}`, payload);
+  if (res.status !== 200 && res.status !== 201) {
+    throw new Error(`GitHub 저장 실패 (status ${res.status}): ${res.raw.slice(0, 300)}`);
   }
 }
 
@@ -101,7 +106,7 @@ function readBody(req) {
 module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
-      const notices = await readNotices();
+      const { notices } = await getFile();
       res.status(200).json({ notices });
       return;
     }
@@ -119,14 +124,14 @@ module.exports = async (req, res) => {
         return;
       }
 
-      const notices = await readNotices();
+      const { notices, sha } = await getFile();
       const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
       const dateStr = now.toISOString().slice(0, 10);
 
       notices.unshift({ id: Date.now(), title, content, date: dateStr });
       const trimmed = notices.slice(0, MAX_NOTICES);
 
-      await writeNotices(trimmed);
+      await putFile(trimmed, sha, `공지사항 추가: ${title}`);
       res.status(200).json({ ok: true, notices: trimmed });
       return;
     }
@@ -137,9 +142,9 @@ module.exports = async (req, res) => {
         res.status(401).json({ error: '비밀번호가 올바르지 않습니다.' });
         return;
       }
-      const notices = await readNotices();
+      const { notices, sha } = await getFile();
       const filtered = notices.filter((n) => n.id !== payload.id);
-      await writeNotices(filtered);
+      await putFile(filtered, sha, `공지사항 삭제 (id: ${payload.id})`);
       res.status(200).json({ ok: true, notices: filtered });
       return;
     }
