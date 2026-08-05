@@ -101,6 +101,59 @@ function fetchJson(url, timeoutMs = 7000) {
   });
 }
 
+function weatherIconAndCondition(pty, sky) {
+  const ptyMap = {
+    '1': { icon: '🌧️', text: '비' },
+    '2': { icon: '🌨️', text: '비/눈' },
+    '3': { icon: '❄️', text: '눈' },
+    '4': { icon: '🌦️', text: '소나기' },
+    '5': { icon: '🌧️', text: '빗방울' },
+    '6': { icon: '🌨️', text: '빗방울눈날림' },
+    '7': { icon: '🌨️', text: '눈날림' },
+  };
+  if (pty && pty !== '0' && ptyMap[pty]) {
+    return ptyMap[pty];
+  }
+  const skyMap = {
+    '1': { icon: '☀️', text: '맑음' },
+    '3': { icon: '⛅', text: '구름많음' },
+    '4': { icon: '☁️', text: '흐림' },
+  };
+  return skyMap[sky] || { icon: '🌤️', text: '' };
+}
+
+async function fetchSamcheokAdvisory(serviceKey) {
+  const url =
+    `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList` +
+    `?serviceKey=${serviceKey}&pageNo=1&numOfRows=50&dataType=JSON&stnId=105`;
+  const data = await fetchJson(url);
+  const body = data?.response?.body;
+  const header = data?.response?.header;
+
+  if (header && header.resultCode && header.resultCode !== '00') {
+    return { active: false, raw: data };
+  }
+
+  let items = body?.items?.item;
+  if (!items) return { active: false, raw: data };
+  if (!Array.isArray(items)) items = [items];
+
+  const matched = items.filter((it) => {
+    const text = JSON.stringify(it);
+    return text.includes('삼척');
+  });
+
+  return {
+    active: matched.length > 0,
+    items: matched.map((it) => ({
+      title: it.title || it.warnVar || null,
+      content: it.t6 || it.t1 || null,
+      tmFc: it.tmFc || null,
+    })),
+    raw: matched.length > 0 ? matched : undefined,
+  };
+}
+
 module.exports = async (req, res) => {
   try {
     const serviceKey = process.env.KMA_SERVICE_KEY;
@@ -115,14 +168,15 @@ module.exports = async (req, res) => {
     }
 
     const { baseDate, baseTime } = getKstBaseDateTime();
-    const url =
+
+    const ncstUrl =
       `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst` +
       `?serviceKey=${serviceKey}&numOfRows=10&pageNo=1&dataType=JSON` +
       `&base_date=${baseDate}&base_time=${baseTime}&nx=${NX}&ny=${NY}`;
 
     let data;
     try {
-      data = await fetchJson(url);
+      data = await fetchJson(ncstUrl);
     } catch (fetchErr) {
       res.status(500).json({
         error: String(fetchErr),
@@ -141,18 +195,47 @@ module.exports = async (req, res) => {
       const found = items.find((i) => i.category === cat);
       return found ? parseFloat(found.obsrValue) : null;
     };
+    const getRaw = (cat) => {
+      const found = items.find((i) => i.category === cat);
+      return found ? found.obsrValue : null;
+    };
 
     const ta = get('T1H');
     const rh = get('REH');
     const wsd = get('WSD');
+    const pty = getRaw('PTY');
 
     if (ta === null) {
       res.status(502).json({ error: '기온 데이터를 찾을 수 없습니다.' });
       return;
     }
 
+    let sky = null;
+    try {
+      const fcstUrl =
+        `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst` +
+        `?serviceKey=${serviceKey}&numOfRows=60&pageNo=1&dataType=JSON` +
+        `&base_date=${baseDate}&base_time=${baseTime}&nx=${NX}&ny=${NY}`;
+      const fcstData = await fetchJson(fcstUrl);
+      const fcstItems = fcstData?.response?.body?.items?.item;
+      if (fcstItems) {
+        const skyItem = fcstItems.find((i) => i.category === 'SKY');
+        sky = skyItem ? skyItem.fcstValue : null;
+      }
+    } catch (e) {
+      sky = null;
+    }
+
     const feelsLike = computeFeelsLike(ta, rh ?? 50, wsd ?? 0);
     const level = classifyLevel(ta, feelsLike);
+    const cond = weatherIconAndCondition(pty, sky);
+
+    let advisory = { active: false };
+    try {
+      advisory = await fetchSamcheokAdvisory(serviceKey);
+    } catch (advErr) {
+      advisory = { active: false, error: String(advErr) };
+    }
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).json({
@@ -161,6 +244,9 @@ module.exports = async (req, res) => {
       windSpeed: wsd,
       feelsLike: Math.round(feelsLike * 10) / 10,
       level,
+      icon: cond.icon,
+      condition: cond.text,
+      advisory,
       baseDate,
       baseTime,
     });
