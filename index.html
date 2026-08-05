@@ -346,6 +346,35 @@
   }
   .notice-detail-body div{ min-height:1em; }
 
+  /* ===================== 자료실 접근 게이트 ===================== */
+  .gate-wrap{
+    display:flex; align-items:center; justify-content:center;
+    min-height:60vh; padding:30px 20px;
+  }
+  .gate-card{
+    width:100%; max-width:320px; text-align:center;
+    background:var(--paper); border:1px solid var(--line); border-radius:16px;
+    padding:28px 22px;
+    box-shadow:0 4px 16px rgba(18,60,99,0.08);
+  }
+  .gate-ic{ font-size:30px; margin-bottom:8px; }
+  .gate-card h2{ font-size:16px; font-weight:800; margin:0 0 8px; }
+  .gate-card p{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:0 0 18px; }
+  .gate-card input{
+    width:100%; text-align:center; letter-spacing:0.15em;
+    border:1px solid var(--line); border-radius:10px;
+    padding:12px; font-size:15px; font-family:inherit;
+    background:var(--sand); color:var(--ink); margin-bottom:10px;
+  }
+  .gate-card input:focus{ outline:2px solid rgba(29,111,176,0.28); }
+  .gate-card button{
+    width:100%; background:var(--blue); color:#fff; border:none;
+    border-radius:10px; padding:12px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:'Noto Sans KR',sans-serif;
+  }
+  .gate-error{ font-size:11.5px; color:#B23F28; margin-top:8px; min-height:14px; }
+  .gate-hint{ font-size:10.5px; color:var(--ink-soft); margin-top:10px; }
+
   /* ===================== 자료실 목록 ===================== */
   .lib-list{ display:flex; flex-direction:column; gap:8px; padding:14px 20px 30px; }
   .lib-item{
@@ -1078,6 +1107,39 @@ function countLabel(n){
   return n > 0 ? `${n}건` : '준비 중';
 }
 
+/* ---------- 자료실 접근 비밀번호 게이트 ---------- */
+function renderLibraryGate(){
+  return `
+    ${navbarHTML('안전보건 자료실')}
+    <div class="gate-wrap">
+      <div class="gate-card">
+        <div class="gate-ic">🔒</div>
+        <h2>안전보건 자료실</h2>
+        <p>내부 안전보건 자료 열람을 위해<br>비밀번호를 입력해주세요.</p>
+        <input type="password" id="libGateInput" inputmode="numeric" placeholder="비밀번호"
+          onkeydown="if(event.key==='Enter') submitLibraryGate()">
+        <button type="button" onclick="submitLibraryGate()">확인</button>
+        <div class="gate-error" id="libGateError"></div>
+        <div class="gate-hint">이 기기에서는 한 번만 입력하면 됩니다.</div>
+      </div>
+    </div>
+  `;
+}
+
+function submitLibraryGate(){
+  const input = document.getElementById('libGateInput');
+  const errEl = document.getElementById('libGateError');
+  if(!input) return;
+  if(input.value.trim() === LIBRARY_PASSWORD){
+    localStorage.setItem('libraryUnlocked', '1');
+    render();
+  } else {
+    if(errEl) errEl.textContent = '비밀번호가 올바르지 않습니다.';
+    input.value = '';
+    input.focus();
+  }
+}
+
 function renderLibrary(){
   return `
     ${navbarHTML('안전보건 자료실')}
@@ -1269,11 +1331,19 @@ function wireYearAccordion(){
 /* ============================================================
    메인 렌더 디스패치
    ============================================================ */
+const LIBRARY_PASSWORD = "00317";
+function isLibraryUnlocked(){
+  return localStorage.getItem('libraryUnlocked') === '1';
+}
+
 function render(){
   const { view, cat, nid } = currentRoute();
   const app = document.getElementById('app');
   let html = '';
-  if(view === 'library') html = renderLibrary();
+  if((view === 'library' || view === 'category') && !isLibraryUnlocked()){
+    html = renderLibraryGate();
+  }
+  else if(view === 'library') html = renderLibrary();
   else if(view === 'category') html = renderCategory(cat);
   else if(view === 'notice') html = renderNotice();
   else if(view === 'notice-detail') html = renderNoticeDetail(nid);
@@ -1288,6 +1358,7 @@ function render(){
   if(document.getElementById('weatherCard')) loadWeather();
   if(document.getElementById('noticeList')) loadNotices();
   if(document.getElementById('noticeDetail')) loadNoticeDetail(nid);
+  if(document.getElementById('libGateInput')) document.getElementById('libGateInput').focus();
 }
 
 window.addEventListener('popstate', render);
