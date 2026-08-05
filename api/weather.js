@@ -4,7 +4,6 @@
 // 프론트엔드는 이 함수의 결과(JSON)만 받아서 화면에 표시합니다.
 // ============================================================
 
-// 쏠비치 삼척 인근 기상청 격자좌표 (위경도 37.4460, 129.1830 기준 변환값)
 const NX = 98;
 const NY = 125;
 
@@ -77,7 +76,12 @@ module.exports = async (req, res) => {
   try {
     const serviceKey = process.env.KMA_SERVICE_KEY;
     if (!serviceKey) {
-      res.status(500).json({ error: 'KMA_SERVICE_KEY 환경변수가 설정되지 않았습니다.' });
+      const candidateKeys = Object.keys(process.env).filter((k) => /KMA|SERVICE/i.test(k));
+      res.status(500).json({
+        error: 'KMA_SERVICE_KEY 환경변수가 설정되지 않았습니다.',
+        debug_similarEnvKeys: candidateKeys,
+        debug_totalEnvCount: Object.keys(process.env).length,
+      });
       return;
     }
 
