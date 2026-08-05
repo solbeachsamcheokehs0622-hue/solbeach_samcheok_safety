@@ -203,6 +203,45 @@
     margin:0;
   }
 
+  /* ===================== 공지사항 ===================== */
+  .notice-toolbar{ display:flex; justify-content:flex-end; padding:2px 20px 10px; }
+  .notice-toolbar button{
+    font-size:11.5px; font-weight:700; color:var(--blue);
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:7px 11px; cursor:pointer; font-family:'Noto Sans KR',sans-serif;
+  }
+  .notice-form{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:14px; margin:0 20px 14px; display:flex; flex-direction:column; gap:8px;
+  }
+  .notice-form input, .notice-form textarea{
+    border:1px solid var(--line); border-radius:8px; padding:9px 10px;
+    font-size:13px; font-family:inherit; color:var(--ink); background:var(--sand);
+  }
+  .notice-form textarea{ min-height:90px; resize:vertical; line-height:1.5; }
+  .notice-form .form-actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .notice-form button.primary{
+    background:var(--blue); color:#fff; border:none; border-radius:8px;
+    padding:9px 15px; font-weight:700; font-size:12.5px; cursor:pointer;
+  }
+  .notice-form button.ghost{
+    background:none; border:1px solid var(--line); border-radius:8px;
+    padding:9px 15px; font-size:12.5px; cursor:pointer; color:var(--ink-soft);
+  }
+  .notice-item{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:14px 15px; margin-bottom:8px;
+  }
+  .notice-item .n-title{ font-size:13.5px; font-weight:700; }
+  .notice-item .n-date{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .notice-item .n-content{
+    font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:9px; white-space:pre-wrap;
+  }
+  .notice-item .n-del{
+    display:inline-block; font-size:11px; font-weight:700; color:#B23F28;
+    margin-top:10px; cursor:pointer;
+  }
+
   /* ===================== 자료실 목록 ===================== */
   .lib-list{ display:flex; flex-direction:column; gap:8px; padding:14px 20px 30px; }
   .lib-item{
@@ -800,7 +839,7 @@ function renderHome(){
       <div class="home-tiles">
         <a class="home-tile tile-notice" href="#" onclick="navigate('notice');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1z" fill="currentColor"/><path d="M15 8a4 4 0 0 1 0 8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M17.6 5.3a8 8 0 0 1 0 13.4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/></svg></span>
-          <span class="label">최신공지</span>
+          <span class="label">공지사항</span>
         </a>
         <a class="home-tile tile-library" href="#" onclick="navigate('library');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" fill="currentColor"/></svg></span>
@@ -901,13 +940,17 @@ function renderCategory(key){
   `;
 }
 
-/* ---------- 최신공지 ---------- */
+/* ---------- 공지사항 ---------- */
 function renderNotice(){
   return `
-    ${navbarHTML('최신공지')}
-    <div class="page-head"><h2>최신공지</h2></div>
-    <div class="section" style="padding-top:4px;">
-      <div class="empty">등록된 공지사항이 없습니다. 준비되는 대로 게시하겠습니다.</div>
+    ${navbarHTML('공지사항')}
+    <div class="page-head"><h2>공지사항</h2></div>
+    <div class="notice-toolbar">
+      <button id="noticeAdminBtn" onclick="toggleNoticeAdmin()">🔒 관리자 글쓰기</button>
+    </div>
+    <div id="noticeFormWrap"></div>
+    <div class="section" style="padding-top:0;">
+      <div id="noticeList" class="empty">불러오는 중...</div>
     </div>
   `;
 }
@@ -992,6 +1035,7 @@ function render(){
   wireYearAccordion();
   initHomeSheet();
   if(document.getElementById('weatherCard')) loadWeather();
+  if(document.getElementById('noticeList')) loadNotices();
 }
 
 window.addEventListener('popstate', render);
@@ -1161,6 +1205,128 @@ function handleLevelPillClick(levelWord){
     return;
   }
   openSheet(`${group}-${levelWord}`);
+}
+
+/* ============================================================
+   공지사항 게시판 — /api/notices 서버리스 함수와 연동됩니다.
+   관리자 비밀번호는 4860 (서버에서도 다시 한 번 확인합니다)
+   ============================================================ */
+let isNoticeAdmin = false;
+let lastNotices = [];
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function loadNotices(){
+  const listEl = document.getElementById('noticeList');
+  if(!listEl) return;
+  try{
+    const res = await fetch('/api/notices');
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    lastNotices = data.notices || [];
+    renderNoticeList();
+  }catch(err){
+    listEl.className = 'empty';
+    listEl.textContent = `공지사항을 불러오지 못했습니다. (${err.message || err})`;
+  }
+}
+
+function renderNoticeList(){
+  const listEl = document.getElementById('noticeList');
+  if(!listEl) return;
+  if(!lastNotices || lastNotices.length === 0){
+    listEl.className = 'empty';
+    listEl.textContent = '등록된 공지사항이 없습니다.';
+    return;
+  }
+  listEl.className = '';
+  listEl.innerHTML = lastNotices.map(n => `
+    <div class="notice-item">
+      <div class="n-title">${escapeHtml(n.title)}</div>
+      <div class="n-date">${n.date}</div>
+      <div class="n-content">${escapeHtml(n.content)}</div>
+      ${isNoticeAdmin ? `<div class="n-del" onclick="deleteNotice(${n.id})">삭제</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function toggleNoticeAdmin(){
+  const btn = document.getElementById('noticeAdminBtn');
+  const formWrap = document.getElementById('noticeFormWrap');
+
+  if(isNoticeAdmin){
+    isNoticeAdmin = false;
+    formWrap.innerHTML = '';
+    btn.textContent = '🔒 관리자 글쓰기';
+    renderNoticeList();
+    return;
+  }
+
+  const pw = prompt('관리자 비밀번호를 입력하세요');
+  if(pw === null) return;
+  if(pw !== '4860'){
+    alert('비밀번호가 올바르지 않습니다.');
+    return;
+  }
+
+  isNoticeAdmin = true;
+  btn.textContent = '✕ 글쓰기 닫기';
+  formWrap.innerHTML = `
+    <div class="notice-form">
+      <input type="text" id="noticeTitleInput" placeholder="제목">
+      <textarea id="noticeContentInput" placeholder="내용을 입력하세요"></textarea>
+      <div class="form-actions">
+        <button class="ghost" type="button" onclick="document.getElementById('noticeTitleInput').value='';document.getElementById('noticeContentInput').value='';">지우기</button>
+        <button class="primary" type="button" onclick="submitNotice()">등록</button>
+      </div>
+    </div>
+  `;
+  renderNoticeList();
+}
+
+async function submitNotice(){
+  const titleEl = document.getElementById('noticeTitleInput');
+  const contentEl = document.getElementById('noticeContentInput');
+  const title = titleEl.value.trim();
+  const content = contentEl.value.trim();
+  if(!title || !content){ alert('제목과 내용을 모두 입력해주세요.'); return; }
+
+  try{
+    const res = await fetch('/api/notices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: '4860', title, content })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    lastNotices = data.notices || [];
+    titleEl.value = '';
+    contentEl.value = '';
+    renderNoticeList();
+  }catch(err){
+    alert('등록 실패: ' + (err.message || err));
+  }
+}
+
+async function deleteNotice(id){
+  if(!confirm('이 공지를 삭제하시겠습니까?')) return;
+  try{
+    const res = await fetch('/api/notices', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: '4860', id })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    lastNotices = data.notices || [];
+    renderNoticeList();
+  }catch(err){
+    alert('삭제 실패: ' + (err.message || err));
+  }
 }
 
 render();
