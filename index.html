@@ -257,21 +257,55 @@
   .notice-editor:focus{ outline:2px solid rgba(29,111,176,0.28); }
   .notice-editor:empty:before{ content:"내용을 입력하세요"; color:var(--ink-soft); }
   .editor-hint{ font-size:10.5px; color:var(--ink-soft); line-height:1.5; }
+  .notice-important-check{
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; color:var(--ink-soft); cursor:pointer;
+  }
+  .notice-important-check input{ width:14px; height:14px; }
 
-  .notice-item{
+  /* 공지사항 목록 (제목/날짜/미리보기 + 화살표) */
+  .notice-row{
+    display:flex; align-items:center; gap:10px;
     background:var(--paper); border:1px solid var(--line); border-radius:12px;
-    padding:14px 15px; margin-bottom:8px;
+    padding:13px 14px; margin-bottom:8px; cursor:pointer;
   }
-  .notice-item .n-title{ font-size:13.5px; font-weight:700; }
-  .notice-item .n-date{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
-  .notice-item .n-content{
-    font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:9px;
+  .notice-row-main{ flex:1; min-width:0; }
+  .notice-row-title{
+    font-size:14px; font-weight:700; margin-bottom:4px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .notice-item .n-content div{ min-height:1em; }
-  .notice-item .n-del{
-    display:inline-block; font-size:11px; font-weight:700; color:#B23F28;
-    margin-top:10px; cursor:pointer;
+  .notice-row-date{ font-size:11px; color:var(--ink-soft); }
+  .notice-row-preview{
+    font-size:12px; color:var(--ink-soft); margin-top:4px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
+  .notice-row-arrow{ font-size:18px; color:var(--ink-soft); flex-shrink:0; }
+  .badge-important{
+    display:inline-block; font-size:10px; font-weight:800; color:#fff;
+    background:#D8553D; padding:2px 6px; border-radius:5px; margin-right:5px;
+    vertical-align:middle;
+  }
+  .badge-new{
+    display:inline-block; font-size:9.5px; font-weight:800; color:var(--blue);
+    background:rgba(29,111,176,0.12); padding:2px 6px; border-radius:5px; margin-right:5px;
+    vertical-align:middle;
+  }
+  .n-del-row{
+    text-align:right; font-size:11px; font-weight:700; color:#B23F28;
+    margin:-4px 2px 8px; cursor:pointer;
+  }
+
+  /* 공지사항 상세 */
+  .notice-detail-wrap{ padding:18px 20px 30px; }
+  .notice-detail-head{
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:14px;
+  }
+  .notice-detail-head h2{ font-size:18px; font-weight:800; margin:6px 0 6px; }
+  .notice-detail-head .n-date{ font-size:11px; color:var(--ink-soft); }
+  .notice-detail-body{
+    font-size:13.5px; color:var(--ink); line-height:1.75;
+  }
+  .notice-detail-body div{ min-height:1em; }
 
   /* ===================== 자료실 목록 ===================== */
   .lib-list{ display:flex; flex-direction:column; gap:8px; padding:14px 20px 30px; }
@@ -297,8 +331,11 @@
     font-size:12.5px;
     display:flex; align-items:center; justify-content:center;
   }
-  .lib-item .name{ flex:1; font-size:14px; font-weight:700; }
+  .lib-item .name-wrap{ flex:1; min-width:0; }
+  .lib-item .name{ display:block; font-size:14px; font-weight:700; }
+  .lib-item .sub{ display:block; font-size:11px; color:var(--ink-soft); margin-top:2px; }
   .lib-item .cnt{ font-size:11px; color:var(--ink-soft); flex-shrink:0; }
+  .lib-item .cnt.pending{ color:var(--sea-foam); font-weight:700; }
   .lib-item .go{ color:var(--ink-soft); font-size:14px; flex-shrink:0; }
 
   /* ===================== 날씨 배너 ===================== */
@@ -503,7 +540,31 @@
   .footnote{ text-align:center; font-size:11px; color:var(--ink-soft); padding:20px 20px 30px; line-height:1.7; }
 
   /* ===================== 비상연락망 ===================== */
-  .call-list{ display:flex; flex-direction:column; gap:8px; padding:14px 20px 30px; }
+  .emg-callout{
+    margin:6px 20px 4px;
+    background:rgba(216,85,61,0.08);
+    border:1px solid rgba(216,85,61,0.3);
+    border-radius:14px;
+    padding:14px;
+  }
+  .emg-title{
+    font-size:11.5px; font-weight:800; color:#B23F28;
+    letter-spacing:0.04em; margin-bottom:9px; text-align:center;
+  }
+  .emg-btns{ display:flex; gap:8px; }
+  .emg-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:#D8553D; color:#fff; text-decoration:none;
+    border-radius:12px; padding:12px 6px;
+  }
+  .emg-btn .emg-num{ font-size:19px; font-weight:800; }
+  .emg-btn .emg-label{ font-size:10.5px; opacity:0.9; }
+
+  .call-group-title{
+    font-size:11.5px; font-weight:800; color:var(--ink-soft);
+    letter-spacing:0.04em; margin:16px 20px 8px;
+  }
+  .call-list{ display:flex; flex-direction:column; gap:8px; padding:0 20px; }
   .call-item{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     background:var(--paper); border:1px solid var(--line); border-radius:12px;
@@ -511,7 +572,15 @@
   }
   .call-item .who{ font-size:13.5px; font-weight:700; }
   .call-item .role{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
-  .call-item .num{ font-weight:700; font-size:13px; color:var(--blue); white-space:nowrap; }
+  .call-item .num{
+    display:flex; align-items:center; gap:5px;
+    font-weight:700; font-size:13px; color:var(--blue); white-space:nowrap;
+  }
+  .call-item .call-ic{ font-size:14px; }
+  .call-maintenance{
+    text-align:center; font-size:10.5px; color:var(--ink-soft);
+    padding:20px 20px 30px; line-height:1.7;
+  }
 
   /* ===================== 위험보고 ===================== */
   .report-wrap{ padding:20px 20px 30px; }
@@ -647,7 +716,7 @@ const CATEGORIES = [
   },
   {
     key: "serious-accident", short: "중대재해 대응 매뉴얼", name: "중대재해 대응 매뉴얼",
-    desc: "중대재해 발생 시 초기 대응 및 보고, 사고 수습 절차를 규정한 매뉴얼입니다.",
+    desc: "사망·중상해 등 중대재해 발생 시 초기 대응 및 보고, 사고 수습 절차를 규정한 매뉴얼입니다.",
     docs: [
       { title:"중대재해 대응 매뉴얼", date:"",
         fileUrl:"https://drive.google.com/drive/folders/1muzPmjtvL7nW4xCTXiih9XuLU6Rv0d9a" }
@@ -671,6 +740,7 @@ const CATEGORIES = [
   },
   {
     key: "work-env", short: "작업환경측정", name: "작업환경측정",
+    subtitle: "유해인자 측정 결과 및 개선자료",
     desc: "소음·분진·화학물질 등 작업환경 유해인자에 대한 측정 결과입니다.",
     docs: [
       { title:"2026년 작업환경측정", date:"",
@@ -699,6 +769,7 @@ const CATEGORIES = [
   },
   {
     key: "contractor", short: "도급사업 안전보건 협의체", name: "도급사업 안전보건 협의체",
+    subtitle: "협력업체 회의록 및 점검자료",
     desc: "도급사업의 안전보건 확보를 위해 협력업체와 공동으로 운영하는 안전보건협의체 회의자료입니다.",
     docs: [
       { title:"2026년 도급사업 안전보건협의체", date:"",
@@ -718,8 +789,9 @@ const CATEGORIES = [
     ]
   },
   {
-    key: "crisis", short: "위기상황 매뉴얼", name: "위기상황 대응 매뉴얼",
-    desc: "다중이용시설에서의 자연재해, 정전, 화재 및 시설사고 등 각종 위기상황 발생 시 대응 절차를 규정한 매뉴얼입니다.",
+    key: "crisis", short: "비상·위기 대응매뉴얼", name: "비상·위기 대응매뉴얼",
+    subtitle: "화재·지진·정전·가스누출·태풍 등",
+    desc: "다중이용시설에서의 화재·지진·정전·가스누출·태풍 등 중대재해를 제외한 각종 위기상황 발생 시 대응 절차를 규정한 매뉴얼입니다.",
     docs: [
       { title:"다중이용시설 위기상황 매뉴얼", date:"",
         fileUrl:"https://drive.google.com/drive/folders/1BYd82w7VULeogO2g0YfMCLDGaiKb6Gdu" }
@@ -787,21 +859,43 @@ const STAGES = [
   }
 ];
 
-const EMERGENCY_CONTACTS = [
-  { who:"안전관리자", role:"한국중부EHS/삼척 · 사고·위험 발견 시", num:"033-803-7840" },
-  { who:"삼척소방서", role:"화재·구조 · 급할 때는 119", num:"033-572-9119" },
-  { who:"삼척경찰서", role:"사건·사고 · 급할 때는 112", num:"033-571-2224" },
-  { who:"한국전력공사 삼척지사", role:"정전·전기설비 이상 시", num:"033-570-2123" },
-  { who:"한국가스안전공사 강원영동지사", role:"가스 누출·사고 시", num:"033-643-0019" },
-  { who:"한국전기안전공사 강원동부지사", role:"전기설비 점검·사고 시", num:"033-902-3100" },
-  { who:"동해엘리베이터", role:"승강기 고장·사고 시", num:"033-521-0482" },
-  { who:"삼척시청 재난안전상황실", role:"재난·안전사고 신고 시", num:"033-570-3119" },
-  { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" },
-  { who:"고용노동부 태백지청", role:"노동관계법 위반 신고 시", num:"033-550-8633" },
-  { who:"삼척시 보건소", role:"응급 의료상담 시", num:"033-572-4000" },
-  { who:"삼척의료원", role:"응급환자 이송·치료 시", num:"033-572-1141" },
-  { who:"근로복지공단 동해병원", role:"산재 치료·요양 시", num:"033-530-3100" },
-  { who:"동해동인병원", role:"종합병원 · 응급 진료 시", num:"033-530-0114" }
+const EMERGENCY_GROUPS = [
+  {
+    title: "긴급신고",
+    contacts: [
+      { who:"화재·구조·구급", role:"소방 긴급신고", num:"119" },
+      { who:"범죄·사고 신고", role:"경찰 긴급신고", num:"112" }
+    ]
+  },
+  {
+    title: "사내 대응",
+    contacts: [
+      { who:"안전관리자", role:"한국중부EHS/삼척 · 사고·위험 발견 시", num:"033-803-7840" }
+    ]
+  },
+  {
+    title: "설비·기관별 연락",
+    contacts: [
+      { who:"삼척소방서", role:"대표전화 · 일반 문의 및 업무연락", num:"033-572-9119" },
+      { who:"삼척경찰서", role:"대표전화 · 일반 문의 및 업무연락", num:"033-571-2224" },
+      { who:"한국전력공사 삼척지사", role:"정전·전기설비 이상 시", num:"033-570-2123" },
+      { who:"한국가스안전공사 강원영동지사", role:"가스 누출·사고 시", num:"033-643-0019" },
+      { who:"한국전기안전공사 강원동부지사", role:"전기설비 점검·사고 시", num:"033-902-3100" },
+      { who:"동해엘리베이터", role:"승강기 고장·사고 시", num:"033-521-0482" },
+      { who:"삼척시청 재난안전상황실", role:"재난·안전사고 신고 시", num:"033-570-3119" }
+    ]
+  },
+  {
+    title: "의료·관계기관",
+    contacts: [
+      { who:"삼척시 보건소", role:"응급 의료상담 시", num:"033-572-4000" },
+      { who:"삼척의료원", role:"응급환자 이송·치료 시", num:"033-572-1141" },
+      { who:"근로복지공단 동해병원", role:"산재 치료·요양 시", num:"033-530-3100" },
+      { who:"동해동인병원", role:"종합병원 · 응급 진료 시", num:"033-530-0114" },
+      { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" },
+      { who:"고용노동부 태백지청", role:"노동관계법 위반 신고 시", num:"033-550-8633" }
+    ]
+  }
 ];
 
 const KAKAO_REPORT_URL = "https://open.kakao.com/o/gCWyifEi";
@@ -819,10 +913,11 @@ function fileTypeLabel(url){
   return '자료';
 }
 
-function navigate(view, cat){
+function navigate(view, cat, nid){
   const params = new URLSearchParams();
   if(view && view !== 'home') params.set('view', view);
   if(cat) params.set('cat', cat);
+  if(nid) params.set('nid', nid);
   const qs = params.toString();
   history.pushState(null, '', qs ? `?${qs}` : location.pathname);
   render();
@@ -831,7 +926,7 @@ function navigate(view, cat){
 
 function currentRoute(){
   const params = new URLSearchParams(location.search);
-  return { view: params.get('view') || 'home', cat: params.get('cat') };
+  return { view: params.get('view') || 'home', cat: params.get('cat'), nid: params.get('nid') };
 }
 
 function navbarHTML(title){
@@ -922,18 +1017,28 @@ function renderHome(){
 }
 
 /* ---------- 자료실 목록 ---------- */
+function countLabel(n){
+  return n > 0 ? `${n}건` : '준비 중';
+}
+
 function renderLibrary(){
   return `
     ${navbarHTML('안전보건 자료실')}
     <div class="lib-list">
-      ${CATEGORIES.map((c,i) => `
+      ${CATEGORIES.map((c,i) => {
+        const total = c.docs.length + (c.yearDocs ? c.yearDocs.length : 0);
+        return `
         <div class="lib-item" onclick="navigate('category','${c.key}')">
           <span class="num">${i+1}</span>
-          <span class="name">${c.name}</span>
-          <span class="cnt">${(c.docs.length + (c.yearDocs ? c.yearDocs.length : 0))}건</span>
+          <span class="name-wrap">
+            <span class="name">${c.name}</span>
+            ${c.subtitle ? `<span class="sub">${c.subtitle}</span>` : ''}
+          </span>
+          <span class="cnt ${total === 0 ? 'pending' : ''}">${countLabel(total)}</span>
           <span class="go">→</span>
         </div>
-      `).join('')}
+      `;
+      }).join('')}
     </div>
   `;
 }
@@ -952,7 +1057,7 @@ function renderCategory(key){
       <div class="cat-head">
         <span class="num">${num}</span>
         <h2>${cat.name}</h2>
-        <span class="cat-count">${totalCount}건</span>
+        <span class="cat-count">${countLabel(totalCount)}</span>
       </div>
       <p class="cat-desc">${cat.desc}</p>
       ${hasYearDocs ? `
@@ -1000,29 +1105,60 @@ function renderCategory(key){
 function renderNotice(){
   return `
     ${navbarHTML('공지사항')}
-    <div class="page-head"><h2>공지사항</h2></div>
     <div class="notice-toolbar">
       <button id="noticeAdminBtn" onclick="toggleNoticeAdmin()">🔒 관리자 글쓰기</button>
     </div>
     <div id="noticeFormWrap"></div>
-    <div class="section" style="padding-top:0;">
+    <div class="section" style="padding-top:6px;">
       <div id="noticeList" class="empty">불러오는 중...</div>
     </div>
   `;
 }
 
+/* ---------- 공지사항 상세 ---------- */
+function renderNoticeDetail(nid){
+  return `
+    ${navbarHTML('공지사항')}
+    <div id="noticeDetail" class="notice-detail-wrap">불러오는 중...</div>
+  `;
+}
+
 /* ---------- 비상연락망 ---------- */
 function renderEmergency(){
+  const emergencyGroup = EMERGENCY_GROUPS[0];
+  const restGroups = EMERGENCY_GROUPS.slice(1);
+
   return `
     ${navbarHTML('비상연락망')}
-    <div class="page-head"><h2>비상연락망</h2><p class="note">현장에서 즉시 연락 가능한 비상연락처입니다.<br>버튼을 누르면 바로 통화가 연결됩니다.</p></div>
-    <div class="call-list">
-      ${EMERGENCY_CONTACTS.map(c => `
-        <a class="call-item" href="tel:${c.num.replace(/-/g,'')}">
-          <span><span class="who">${c.who}</span><br><span class="role">${c.role}</span></span>
-          <span class="num">${c.num} →</span>
-        </a>
-      `).join('')}
+    <div class="page-head"><p class="note">현장에서 즉시 연락 가능한 비상연락처입니다.<br>버튼을 누르면 바로 통화가 연결됩니다.</p></div>
+
+    <div class="emg-callout">
+      <div class="emg-title">긴급신고</div>
+      <div class="emg-btns">
+        ${emergencyGroup.contacts.map(c => `
+          <a class="emg-btn" href="tel:${c.num}">
+            <span class="emg-num">${c.num}</span>
+            <span class="emg-label">${c.who}</span>
+          </a>
+        `).join('')}
+      </div>
+    </div>
+
+    ${restGroups.map(g => `
+      <div class="call-group-title">${g.title}</div>
+      <div class="call-list">
+        ${g.contacts.map(c => `
+          <a class="call-item" href="tel:${c.num.replace(/-/g,'')}">
+            <span><span class="who">${c.who}</span><br><span class="role">${c.role}</span></span>
+            <span class="num">${c.num} <span class="call-ic">☎</span></span>
+          </a>
+        `).join('')}
+      </div>
+    `).join('')}
+
+    <div class="call-maintenance">
+      최종 확인일: 2026.08.05 · 담당: EHS팀<br>
+      번호 오류 신고: 내선 7840 (033-803-7840)
     </div>
   `;
 }
@@ -1077,12 +1213,13 @@ function wireYearAccordion(){
    메인 렌더 디스패치
    ============================================================ */
 function render(){
-  const { view, cat } = currentRoute();
+  const { view, cat, nid } = currentRoute();
   const app = document.getElementById('app');
   let html = '';
   if(view === 'library') html = renderLibrary();
   else if(view === 'category') html = renderCategory(cat);
   else if(view === 'notice') html = renderNotice();
+  else if(view === 'notice-detail') html = renderNoticeDetail(nid);
   else if(view === 'emergency') html = renderEmergency();
   else if(view === 'report') html = renderReport();
   else html = renderHome();
@@ -1092,6 +1229,7 @@ function render(){
   initHomeSheet();
   if(document.getElementById('weatherCard')) loadWeather();
   if(document.getElementById('noticeList')) loadNotices();
+  if(document.getElementById('noticeDetail')) loadNoticeDetail(nid);
 }
 
 window.addEventListener('popstate', render);
@@ -1398,6 +1536,12 @@ async function loadNotices(){
   }
 }
 
+function stripHtmlPreview(html, maxLen){
+  const text = String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if(text.length <= maxLen) return text;
+  return text.slice(0, maxLen) + '…';
+}
+
 function renderNoticeList(){
   const listEl = document.getElementById('noticeList');
   if(!listEl) return;
@@ -1406,15 +1550,51 @@ function renderNoticeList(){
     listEl.textContent = '등록된 공지사항이 없습니다.';
     return;
   }
-  listEl.className = '';
-  listEl.innerHTML = lastNotices.map(n => `
-    <div class="notice-item">
-      <div class="n-title">${escapeHtml(n.title)}</div>
-      <div class="n-date">${n.date} · 작성자: 관리자</div>
-      <div class="n-content">${n.content}</div>
-      ${isNoticeAdmin ? `<div class="n-del" onclick="deleteNotice(${n.id})">삭제</div>` : ''}
+  listEl.className = 'notice-list';
+  listEl.innerHTML = lastNotices.map((n, i) => `
+    <div class="notice-row" onclick="navigate('notice-detail', null, ${n.id})">
+      <div class="notice-row-main">
+        <div class="notice-row-title">
+          ${n.important ? '<span class="badge-important">중요</span>' : ''}
+          ${i === 0 ? '<span class="badge-new">NEW</span>' : ''}
+          ${escapeHtml(n.title)}
+        </div>
+        <div class="notice-row-date">${n.date} · 관리자</div>
+        <div class="notice-row-preview">${escapeHtml(stripHtmlPreview(n.content, 42))}</div>
+      </div>
+      <span class="notice-row-arrow">›</span>
     </div>
+    ${isNoticeAdmin ? `<div class="n-del-row" onclick="event.stopPropagation(); deleteNotice(${n.id})">이 공지 삭제</div>` : ''}
   `).join('');
+}
+
+async function loadNoticeDetail(nid){
+  const el = document.getElementById('noticeDetail');
+  if(!el) return;
+  try{
+    const res = await fetch('/api/notices');
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    const notices = data.notices || [];
+    const notice = notices.find(n => String(n.id) === String(nid));
+    if(!notice){
+      el.className = 'empty';
+      el.textContent = '해당 공지를 찾을 수 없습니다.';
+      return;
+    }
+    el.className = 'notice-detail-wrap';
+    el.innerHTML = `
+      <div class="notice-detail-head">
+        ${notice.important ? '<span class="badge-important">중요</span>' : ''}
+        <h2>${escapeHtml(notice.title)}</h2>
+        <div class="n-date">${notice.date} · 작성자: 관리자</div>
+      </div>
+      <div class="notice-detail-body">${notice.content}</div>
+    `;
+  }catch(err){
+    el.className = 'empty';
+    el.textContent = `공지를 불러오지 못했습니다. (${err.message || err})`;
+  }
 }
 
 function toggleNoticeAdmin(){
@@ -1441,6 +1621,9 @@ function toggleNoticeAdmin(){
   formWrap.innerHTML = `
     <div class="notice-form">
       <input type="text" id="noticeTitleInput" placeholder="제목">
+      <label class="notice-important-check">
+        <input type="checkbox" id="noticeImportantInput"> 중요 공지로 표시
+      </label>
       <div class="editor-toolbar">
         <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="applyFormat('bold')"><b>B</b></button>
         <button type="button" class="tb-btn" onmousedown="event.preventDefault()" onclick="applyFormat('italic')"><i>I</i></button>
@@ -1487,22 +1670,25 @@ function clearNoticeDraft(){
 async function submitNotice(){
   const titleEl = document.getElementById('noticeTitleInput');
   const editorEl = document.getElementById('noticeContentEditor');
+  const importantEl = document.getElementById('noticeImportantInput');
   const title = titleEl.value.trim();
   const content = editorEl.innerHTML.trim();
   const plainCheck = editorEl.textContent.trim();
+  const important = importantEl ? importantEl.checked : false;
   if(!title || !plainCheck){ alert('제목과 내용을 모두 입력해주세요.'); return; }
 
   try{
     const res = await fetch('/api/notices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: '4860', title, content })
+      body: JSON.stringify({ password: '4860', title, content, important })
     });
     const data = await res.json();
     if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     lastNotices = data.notices || [];
     titleEl.value = '';
     editorEl.innerHTML = '';
+    if(importantEl) importantEl.checked = false;
     clearNoticeDraft();
     renderNoticeList();
   }catch(err){
