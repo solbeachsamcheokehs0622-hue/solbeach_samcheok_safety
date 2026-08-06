@@ -598,7 +598,7 @@
   .year-accordion{ display:flex; flex-direction:column; gap:8px; }
   .year-item{ background:var(--paper); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
   .year-btn{
-    width:100%; display:flex; align-items:center; gap:10px; padding:13px 14px;
+    width:100%; display:flex; align-items:flex-start; gap:10px; padding:13px 14px;
     background:transparent; border:none; font-family:'Noto Sans KR',sans-serif;
     font-size:13.5px; font-weight:700; color:var(--ink); cursor:pointer; text-align:left;
   }
@@ -607,8 +607,8 @@
     background:rgba(29,111,176,0.1); color:var(--blue);
     display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;
   }
-  .year-btn .yr-title{ flex:1; }
-  .year-btn .chevron{ flex-shrink:0; color:var(--ink-soft); font-size:12px; transition:transform .3s ease; }
+  .year-btn .yr-title{ flex:1; line-height:1.45; padding-top:8px; word-break:keep-all; }
+  .year-btn .chevron{ flex-shrink:0; color:var(--ink-soft); font-size:12px; margin-top:8px; transition:transform .3s ease; }
   .year-item.open .year-btn .yr-badge{ background:var(--sun); color:#3A2600; }
   .year-item.open .chevron{ transform:rotate(180deg); }
   .year-panel{ max-height:0; overflow:hidden; transition:max-height .35s ease; }
@@ -1961,6 +1961,11 @@ async function loadIncidents(){
   }
 }
 
+function shortIncidentTitle(inc){
+  const d = (inc.date || '').replaceAll('-', '.');
+  return `${d} 중대재해 알림🚨 [${inc.industry}]`;
+}
+
 function renderIncidentList(){
   const listEl = document.getElementById('incidentList');
   if(!listEl) return;
@@ -1974,7 +1979,7 @@ function renderIncidentList(){
     <div class="year-item" data-id="${inc.id}" data-path="${inc.path}">
       <button class="year-btn" type="button">
         <span class="yr-badge">🚨</span>
-        <span class="yr-title">${i === 0 ? '<span class="badge-new">NEW</span> ' : ''}${escapeHtml(inc.title)}</span>
+        <span class="yr-title">${i === 0 ? '<span class="badge-new">NEW</span> ' : ''}${escapeHtml(shortIncidentTitle(inc))}</span>
         <span class="chevron">▾</span>
       </button>
       <div class="year-panel">
