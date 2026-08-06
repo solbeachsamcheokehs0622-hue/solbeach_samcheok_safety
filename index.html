@@ -435,6 +435,26 @@
     box-shadow:none;
     padding:8px 20px;
   }
+
+  /* 주의/경고/위험 단계별 이펙트 — 여름(온열)은 붉은 계열, 겨울(한랭)은 푸른 계열로 강도가 세집니다 */
+  .weather-card{ transition: box-shadow .3s ease; }
+  .weather-card.season-summer.lv-caution{ --fx: #F2A93B; }
+  .weather-card.season-summer.lv-warning{ --fx: #E68C28; }
+  .weather-card.season-summer.lv-danger{ --fx: #D8362A; }
+  .weather-card.season-winter.lv-caution{ --fx: #8FB6D9; }
+  .weather-card.season-winter.lv-warning{ --fx: #4E86BF; }
+  .weather-card.season-winter.lv-danger{ --fx: #123C63; }
+  .weather-card.lv-caution{ box-shadow: 0 0 0 2px var(--fx) inset; }
+  .weather-card.lv-warning{ animation: fxPulseMed 2.1s ease-in-out infinite; }
+  .weather-card.lv-danger{ animation: fxPulseStrong 1.1s ease-in-out infinite; }
+  @keyframes fxPulseMed{
+    0%,100%{ box-shadow: 0 0 0 2px var(--fx) inset; }
+    50%{ box-shadow: 0 0 0 2px var(--fx) inset, 0 0 10px 1px var(--fx); }
+  }
+  @keyframes fxPulseStrong{
+    0%,100%{ box-shadow: 0 0 0 3px var(--fx) inset; }
+    50%{ box-shadow: 0 0 0 3px var(--fx) inset, 0 0 18px 4px var(--fx); }
+  }
   .weather-card .w-row1{
     display:flex;
     align-items:center;
@@ -557,6 +577,10 @@
     box-shadow:0 1px 3px rgba(0,0,0,0.15);
     white-space:nowrap;
   }
+  .lvl-pill.lvl-normal.active::after{ background:#1D6FB0; }
+  .lvl-pill.lvl-caution.active::after{ background:#C99A1B; }
+  .lvl-pill.lvl-warning.active::after{ background:#E68C28; }
+  .lvl-pill.lvl-danger.active::after{ background:#D8553D; }
 
   /* ===================== 카테고리 상세 (기존 스타일 재사용) ===================== */
   .section{ padding:16px 20px 6px; }
@@ -643,39 +667,39 @@
     margin:6px 20px 4px;
     background:rgba(216,85,61,0.08);
     border:1px solid rgba(216,85,61,0.3);
-    border-radius:14px;
-    padding:14px;
+    border-radius:10px;
+    padding:7px;
   }
   .emg-title{
-    font-size:11.5px; font-weight:800; color:#B23F28;
-    letter-spacing:0.04em; margin-bottom:9px; text-align:center;
+    font-size:9.5px; font-weight:800; color:#B23F28;
+    letter-spacing:0.04em; margin-bottom:5px; text-align:center;
   }
-  .emg-btns{ display:flex; gap:8px; }
+  .emg-btns{ display:flex; gap:6px; }
   .emg-btn{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:1px;
     background:#D8553D; color:#fff; text-decoration:none;
-    border-radius:12px; padding:12px 6px;
+    border-radius:8px; padding:6px 4px;
   }
-  .emg-btn .emg-num{ font-size:19px; font-weight:800; }
-  .emg-btn .emg-label{ font-size:10.5px; opacity:0.9; }
+  .emg-btn .emg-num{ font-size:13px; font-weight:800; }
+  .emg-btn .emg-label{ font-size:8.5px; opacity:0.9; }
 
   .call-group-title{
     font-size:11.5px; font-weight:800; color:var(--ink-soft);
     letter-spacing:0.04em; margin:16px 20px 8px;
   }
-  .call-list{ display:flex; flex-direction:column; gap:8px; padding:0 20px; }
+  .call-list{ display:flex; flex-direction:column; gap:6px; padding:0 20px; }
   .call-item{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    background:var(--paper); border:1px solid var(--line); border-radius:12px;
-    padding:14px 15px; text-decoration:none; color:var(--ink);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:8px 10px; text-decoration:none; color:var(--ink);
   }
-  .call-item .who{ font-size:13.5px; font-weight:700; }
-  .call-item .role{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .call-item .who{ font-size:12px; font-weight:700; }
+  .call-item .role{ font-size:10px; color:var(--ink-soft); margin-top:1px; }
   .call-item .num{
-    display:flex; align-items:center; gap:5px;
-    font-weight:700; font-size:13px; color:var(--blue); white-space:nowrap;
+    display:flex; align-items:center; gap:4px;
+    font-weight:700; font-size:11.5px; color:var(--blue); white-space:nowrap;
   }
-  .call-item .call-ic{ font-size:14px; }
+  .call-item .call-ic{ font-size:12px; }
   .call-maintenance{
     text-align:center; font-size:10.5px; color:var(--ink-soft);
     padding:20px 20px 30px; line-height:1.7;
@@ -763,13 +787,29 @@
   }
   .illness-sub-title:first-of-type{ margin-top:0; }
   .stage-btn .st-title{ flex:1; font-size:13px; font-weight:700; }
-  .stage-btn .st-temp{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .stage-btn .st-temp{ font-size:11.5px; color:var(--ink-soft); font-weight:600; transition:opacity .15s ease; }
+  .stage-heat-caution .st-temp{ color:#B9860B; }
+  .stage-heat-warning .st-temp{ color:#B85E0F; }
+  .stage-heat-danger .st-temp{ color:#B23F28; }
+  .stage-cold-caution .st-temp{ color:#4E86BF; }
+  .stage-cold-warning .st-temp{ color:#2B5F91; }
+  .stage-cold-danger .st-temp{ color:#123C63; }
+  .stage-item.open .st-temp{ display:none; }
   .stage-panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
   .stage-panel-inner{ padding:0 14px 14px 33px; font-size:12px; color:var(--ink-soft); line-height:1.7; }
   .stage-panel-inner ul{ margin:0; padding-left:16px; }
   .stage-panel-inner li{ margin-bottom:4px; }
   .stage-item.active{ border-color:var(--blue); }
   .stage-item.active .st-title{ color:var(--blue); }
+  .crit-act-title{
+    font-size:11.5px; font-weight:800; color:var(--ink);
+    margin:0 0 6px;
+  }
+  .crit-act-title.act-title{ margin-top:14px; }
+  .crit-act-title .crit-cond{ font-weight:600; color:var(--ink-soft); font-size:11px; }
+  .num-list{ display:flex; flex-direction:column; gap:6px; }
+  .num-item{ display:flex; gap:6px; align-items:flex-start; }
+  .num-item .num-mark{ flex-shrink:0; font-weight:800; color:var(--ink-soft); }
 </style>
 </head>
 <body>
@@ -930,8 +970,10 @@ const STAGES = [
   {
     group: "heat", key: "heat-caution", title: "폭염주의보",
     temp: "일 최고체감온도 33℃ 이상 · 2일 이상 지속 예상",
-    items: [
-      "[발령기준] 일 최고체감온도 33℃ 이상이 2일 이상 지속될 것으로 예상될 때",
+    criteria: [
+      "일 최고체감온도 33℃ 이상이 2일 이상 지속될 것으로 예상될 때"
+    ],
+    actions: [
       "매 2시간 이내 20분 이상의 휴식 부여",
       "작업의 성질상 휴식 부여가 매우 곤란한 경우, 개인용 보냉장구 지급·착용 등 근로자 체온상승을 줄일 수 있는 조치"
     ]
@@ -939,8 +981,10 @@ const STAGES = [
   {
     group: "heat", key: "heat-warning", title: "폭염경보",
     temp: "일 최고체감온도 35℃ 이상 · 2일 이상 지속 예상",
-    items: [
-      "[발령기준] 일 최고체감온도 35℃ 이상이 2일 이상 지속될 것으로 예상될 때",
+    criteria: [
+      "일 최고체감온도 35℃ 이상이 2일 이상 지속될 것으로 예상될 때"
+    ],
+    actions: [
       "무더위 시간대(14~17시)에는 불가피한 경우를 제외하고 옥외작업 중지",
       "업무담당자를 지정하여 근로자 건강상태 확인"
     ]
@@ -948,11 +992,12 @@ const STAGES = [
   {
     group: "heat", key: "heat-danger", title: "폭염중대경보",
     temp: "일 최고체감온도 38℃ 이상 또는 일 최고기온 39℃ 이상",
-    items: [
-      "[발령기준] 다음 중 하나에 해당할 때",
-      "· 일 최고체감온도 38℃ 이상이 1일 이상 지속될 것으로 예상될 때",
-      "· 일 최고기온 39℃ 이상이 1일 이상 지속될 것으로 예상될 때",
-      "· 일 최고체감온도 35℃ 이상이 2일 이상 관측된 지역에서 위 조건에 해당하는 경우",
+    criteria: [
+      "일 최고체감온도 38℃ 이상이 1일 이상 지속될 것으로 예상될 때",
+      "일 최고기온 39℃ 이상이 1일 이상 지속될 것으로 예상될 때",
+      "일 최고체감온도 35℃ 이상이 2일 이상 관측된 지역에서 위 조건에 해당하는 경우"
+    ],
+    actions: [
       "재난 및 안전관리 등에 필요한 긴급조치 작업 외 옥외작업 중지",
       "열사병 등 온열질환 민감군에 대하여 옥외작업 제한",
       "업무담당자를 지정하여 근로자 건강상태 확인",
@@ -962,10 +1007,11 @@ const STAGES = [
   {
     group: "cold", key: "cold-caution", title: "한파주의보",
     temp: "아침 최저기온 -12℃ 이하 등 · 2일 이상 지속 예상",
-    items: [
-      "[발령기준] 10월~4월 중 다음 중 하나에 해당할 때",
-      "· 아침 최저기온이 전날보다 10℃ 이상 하강하여 3℃ 이하이면서 평년값보다 3℃ 이상 낮을 것으로 예상될 때",
-      "· 아침 최저기온 -12℃ 이하가 2일 이상 지속될 것으로 예상될 때",
+    criteria: [
+      "(10월~4월) 아침 최저기온이 전날보다 10℃ 이상 하강하여 3℃ 이하이면서 평년값보다 3℃ 이상 낮을 것으로 예상될 때",
+      "(10월~4월) 아침 최저기온 -12℃ 이하가 2일 이상 지속될 것으로 예상될 때"
+    ],
+    actions: [
       "방한복·방한장갑 등 보온장구 착용, 따뜻한 물 상시 섭취",
       "규칙적인 휴식시간 부여 및 추위를 피할 수 있는 따뜻한 장소 확보",
       "2인 1조 배치로 작업자 간 상호 이상징후 관찰"
@@ -974,10 +1020,11 @@ const STAGES = [
   {
     group: "cold", key: "cold-warning", title: "한파경보",
     temp: "아침 최저기온 -15℃ 이하 등 · 2일 이상 지속 예상",
-    items: [
-      "[발령기준] 10월~4월 중 다음 중 하나에 해당할 때",
-      "· 아침 최저기온이 전날보다 15℃ 이상 하강하여 3℃ 이하이면서 평년값보다 3℃ 이상 낮을 것으로 예상될 때",
-      "· 아침 최저기온 -15℃ 이하가 2일 이상 지속될 것으로 예상될 때",
+    criteria: [
+      "(10월~4월) 아침 최저기온이 전날보다 15℃ 이상 하강하여 3℃ 이하이면서 평년값보다 3℃ 이상 낮을 것으로 예상될 때",
+      "(10월~4월) 아침 최저기온 -15℃ 이하가 2일 이상 지속될 것으로 예상될 때"
+    ],
+    actions: [
       "추운 시간대에 휴게시간을 집중 배치하고, 평소보다 더 자주·길게 휴식 부여",
       "한랭질환 경고증상(오한, 손발 저림 등)을 느끼는 근로자는 정해진 휴식시간과 무관하게 즉시 작업 중단·휴식 허용, 이로 인한 불이익 금지",
       "민감군(고혈압·당뇨 등 기저질환자) 근로자는 가급적 옥외작업 자제"
@@ -986,8 +1033,10 @@ const STAGES = [
   {
     group: "cold", key: "cold-danger", title: "한파경보 이상 (참고)",
     temp: "체감 -18℃ 이하 (기상청 공식 3단계 아님·참고용)",
-    items: [
-      "기상청 한파특보는 주의보·경보 2단계까지만 있습니다. 이 단계는 경보가 이미 발효된 상태에서 상황이 더 심각해질 경우를 대비한 저희 자체 참고 기준입니다.",
+    criteria: [
+      "기상청 한파특보는 주의보·경보 2단계까지만 있습니다. 경보가 이미 발효된 상태에서 상황이 더 심각해질 경우를 대비한 자체 참고 기준입니다 (체감 -18℃ 이하)."
+    ],
+    actions: [
       "한파특보 현황 등 기상상황과 예방조치 정보를 근로자에게 실시간 공유",
       "저체온증 등 중증 한랭질환 의심 시 즉시 119 신고 및 응급처치",
       "불가피한 경우를 제외하고 옥외작업 최소화·중지 검토"
@@ -1138,14 +1187,16 @@ const EMERGENCY_GROUPS = [
   {
     title: "사내 대응",
     contacts: [
-      { who:"안전관리자", role:"한국중부EHS/삼척 · 사고·위험 발견 시", num:"033-803-7840" }
-    ]
-  },
-  {
-    title: "안전보건 관계기관",
-    contacts: [
-      { who:"고용노동부 태백지청", role:"중대산업재해 발생 시 보고", num:"033-550-8633" },
-      { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" }
+      { who:"GM", role:"사업장총괄운영 / 안전보건관리(총괄)책임자", num:"010-6314-9712" },
+      { who:"지원CM", num:"010-2770-0681" },
+      { who:"운영1CM", num:"010-5490-6095" },
+      { who:"운영2CM", num:"010-4387-7002" },
+      { who:"조리CM", num:"010-2851-8990" },
+      { who:"시설CM", num:"010-2391-3012" },
+      { who:"ES CM", num:"010-8717-6974" },
+      { who:"안전관리자", role:"사고·위험 발견 시", num:"033-803-7840" },
+      { who:"소방안전관리자", role:"화재 위험 발견 시", num:"010-4553-8045" },
+      { who:"객실 상황실", role:"객실 내 상황 발생 시", num:"033-803-7910" }
     ]
   },
   {
@@ -1157,7 +1208,8 @@ const EMERGENCY_GROUPS = [
       { who:"한국가스안전공사 강원영동지사", role:"가스 누출·사고 시", num:"033-643-0019" },
       { who:"한국전기안전공사 강원동부지사", role:"전기설비 점검·사고 시", num:"033-902-3100" },
       { who:"동해엘리베이터", role:"승강기 고장·사고 시", num:"033-521-0482" },
-      { who:"삼척시청 재난안전상황실", role:"재난·안전사고 신고 시", num:"033-570-3119" }
+      { who:"삼척시청 재난안전상황실", role:"재난·안전사고 신고 시", num:"033-570-3119" },
+      { who:"한국산업안전보건공단 강원동부지사", role:"산업재해 관련 문의 시", num:"033-820-2580" }
     ]
   },
   {
@@ -1471,7 +1523,7 @@ function renderEmergency(){
       <div class="call-list">
         ${g.contacts.map(c => `
           <a class="call-item" href="tel:${c.num.replace(/-/g,'')}">
-            <span><span class="who">${c.who}</span><br><span class="role">${c.role}</span></span>
+            <span><span class="who">${c.who}</span>${c.role ? `<br><span class="role">${c.role}</span>` : ''}</span>
             <span class="num">${c.num} <span class="call-ic">☎</span></span>
           </a>
         `).join('')}
@@ -1674,7 +1726,15 @@ function initHomeSheet(){
 /* ============================================================
    기준 보기 바텀시트
    ============================================================ */
+const CIRCLED_NUM = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+function numberedListHTML(arr){
+  return `<div class="num-list">${arr.map((t,i) => `
+    <div class="num-item"><span class="num-mark">${CIRCLED_NUM[i] || (i+1)+'.'}</span><span>${t}</span></div>
+  `).join('')}</div>`;
+}
+
 function stageItemHTML(s, activeKey){
+  const multiCriteria = s.criteria.length > 1;
   return `
     <div class="stage-item stage-${s.key} ${s.key===activeKey ? 'active':''}" data-key="${s.key}">
       <button class="stage-btn" type="button">
@@ -1684,7 +1744,10 @@ function stageItemHTML(s, activeKey){
       </button>
       <div class="stage-panel">
         <div class="stage-panel-inner">
-          <ul>${s.items.map(t => `<li>${t}</li>`).join('')}</ul>
+          <div class="crit-act-title">🚨 발령기준${multiCriteria ? ' <span class="crit-cond">다음 중 하나에 해당될 때</span>' : ''}</div>
+          ${numberedListHTML(s.criteria)}
+          <div class="crit-act-title act-title">✅ 행동요령</div>
+          ${numberedListHTML(s.actions)}
         </div>
       </div>
     </div>
@@ -1735,11 +1798,17 @@ function renderSheetBody(activeKey){
     const panel = item.querySelector('.stage-panel');
     if(item.classList.contains('active')){
       panel.style.maxHeight = panel.scrollHeight + 'px';
+      item.classList.add('open');
     }
     btn.addEventListener('click', () => {
       const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
-      if(isOpen){ panel.style.maxHeight = null; }
-      else { panel.style.maxHeight = panel.scrollHeight + 'px'; }
+      if(isOpen){
+        panel.style.maxHeight = null;
+        item.classList.remove('open');
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+        item.classList.add('open');
+      }
     });
   });
 }
@@ -1778,25 +1847,33 @@ function updateActivePill(card, cls){
 
 // 현재 단계 + 다음 단계로 넘어가는 기준을 함께 보여줍니다.
 // (더워질 때는 고용노동부 공식 폭염 대응기준, 추워질 때는 참고기준임을 함께 표기)
+const LEVEL_TEXT_COLOR = {
+  'lv-normal': '#1D6FB0',
+  'lv-caution': '#8A6D10',
+  'lv-warning': '#B85E0F',
+  'lv-danger': '#B23F28',
+};
+
 function stageNoteText(temp, cls, label){
   let next = '';
   let source = '';
+  const color = LEVEL_TEXT_COLOR[cls] || 'var(--ink)';
   if(temp >= 27){
     source = '고용노동부 기준';
     if(cls === 'lv-normal') next = '33℃ 이상 시 주의';
-    else if(cls === 'lv-caution') next = '35℃ 이상 시 경보';
+    else if(cls === 'lv-caution') next = '35℃ 이상 시 경고';
     else if(cls === 'lv-warning') next = '38℃ 이상 시 위험';
     else if(cls === 'lv-danger') next = '온열질환 위험 단계';
   } else if(temp <= 10){
     source = '기상청 기준';
     if(cls === 'lv-normal') next = '-12℃ 이하 시 주의';
-    else if(cls === 'lv-caution') next = '-15℃ 이하 시 경보';
+    else if(cls === 'lv-caution') next = '-15℃ 이하 시 경고';
     else if(cls === 'lv-warning') next = '-18℃ 이하 시 위험(참고)';
     else if(cls === 'lv-danger') next = '한랭질환 위험 단계';
   } else {
-    return `현재 단계: <b>${label}</b>`;
+    return `현재 단계: <b style="color:${color}">${label}</b>`;
   }
-  return `현재 단계: <b>${label}</b> · ${next} (${source})`;
+  return `현재 단계: <b style="color:${color}">${label}</b> · ${next} (${source})`;
 }
 
 let lastWeatherData = null;
@@ -1815,7 +1892,8 @@ async function loadWeather(){
 
     lastWeatherData = data;
     const icon = data.icon || '🌤️';
-    card.className = `weather-card ${data.level.cls}${flushClass}`;
+    const seasonClass = data.temp >= 27 ? ' season-summer' : (data.temp <= 10 ? ' season-winter' : '');
+    card.className = `weather-card ${data.level.cls}${seasonClass}${flushClass}`;
     card.querySelector('.w-row1').innerHTML = `
       <span class="wi">${icon}</span>
       <span class="w-temp">체감온도 ${data.feelsLike}℃</span>
