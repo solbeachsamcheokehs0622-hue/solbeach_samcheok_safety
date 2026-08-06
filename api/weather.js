@@ -64,9 +64,9 @@ function classifyLevel(ta, feelsLike) {
     return { cls: 'lv-normal', label: '정상' };
   }
   if (ta <= 10) {
-    if (feelsLike <= -15) return { cls: 'lv-danger', label: '위험' };
-    if (feelsLike <= -12) return { cls: 'lv-warning', label: '경보' };
-    if (feelsLike <= -10) return { cls: 'lv-caution', label: '주의' };
+    if (feelsLike <= -18) return { cls: 'lv-danger', label: '위험' };
+    if (feelsLike <= -15) return { cls: 'lv-warning', label: '경보' };
+    if (feelsLike <= -12) return { cls: 'lv-caution', label: '주의' };
     return { cls: 'lv-normal', label: '정상' };
   }
   return { cls: 'lv-normal', label: '정상' };
