@@ -1097,10 +1097,10 @@ function renderHome(){
     </div>
     <div class="home-sheet-spacer"></div>
 
-    <div class="home-sheet" id="homeSheet">
+    <div class="home-sheet${homeSheetOpenState ? ' open settled' : ''}" id="homeSheet">
       <div class="home-sheet-handle" id="homeSheetHandle">
         <div class="grab"></div>
-        <div class="handle-label" id="homeSheetLabel">안전보건 메뉴 열기 ↑</div>
+        <div class="handle-label" id="homeSheetLabel">${homeSheetOpenState ? '메뉴 닫기 ↓' : '안전보건 메뉴 열기 ↑'}</div>
       </div>
       <div class="home-tiles">
         <a class="home-tile tile-notice" href="#" onclick="navigate('notice');return false;">
@@ -1403,6 +1403,10 @@ function isLibraryUnlocked(){
   return localStorage.getItem('libraryUnlocked') === '1';
 }
 
+// 홈 화면 하단 메뉴 시트가 마지막으로 열려있었는지 기억합니다.
+// (자료실 등에서 뒤로가기로 홈에 돌아왔을 때 다시 스와이프하지 않아도 되도록)
+let homeSheetOpenState = false;
+
 function render(){
   const { view, cat, nid } = currentRoute();
   const app = document.getElementById('app');
@@ -1472,6 +1476,7 @@ function initHomeSheet(){
     sheet.classList.remove('settled'); // 트랜지션이 끝나기 전까지는 타일 클릭 잠금
     sheet.classList.toggle('open', open);
     if(label) label.textContent = open ? '메뉴 닫기 ↓' : '안전보건 메뉴 열기 ↑';
+    homeSheetOpenState = open;
   };
 
   // 슬라이드 애니메이션이 완전히 끝난 뒤에만 타일이 눌리도록 함
