@@ -369,7 +369,8 @@
   }
   .gate-ic{ font-size:30px; margin-bottom:8px; }
   .gate-card h2{ font-size:16px; font-weight:800; margin:0 0 8px; }
-  .gate-card p{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:0 0 18px; }
+  .gate-card p{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:0 0 10px; }
+  .gate-band-note{ font-size:12.5px; font-weight:800; color:#D8362A; margin:0 0 16px; }
   .gate-card input{
     width:100%; text-align:center; letter-spacing:0.15em;
     border:1px solid var(--line); border-radius:10px;
@@ -1156,11 +1157,12 @@ function renderLibraryGate(){
         <div class="gate-ic">🔒</div>
         <h2>안전보건 자료실</h2>
         <p>쏠비치 삼척 안전보건 자료 열람을 위해<br>비밀번호를 입력해주세요.</p>
+        <div class="gate-band-note">☆ 비밀번호는 네이버 밴드에서 확인 가능합니다. ☆</div>
         <input type="password" id="libGateInput" inputmode="numeric" placeholder="비밀번호"
           onkeydown="if(event.key==='Enter') submitLibraryGate()">
         <button type="button" onclick="submitLibraryGate()">확인</button>
         <div class="gate-error" id="libGateError"></div>
-        <div class="gate-hint">이 기기에서는 한 번만 입력하면 됩니다.<br>☆ 비밀번호는 네이버 밴드에서 확인 가능합니다. ☆</div>
+        <div class="gate-hint">이 기기에서는 한 번만 입력하면 됩니다.</div>
       </div>
     </div>
   `;
