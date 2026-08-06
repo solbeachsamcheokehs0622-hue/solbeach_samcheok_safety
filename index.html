@@ -157,7 +157,7 @@
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:12px;
-    padding:2px 20px 26px;
+    padding:2px 20px 12px;
   }
   .home-tile{
     display:flex;
@@ -616,6 +616,7 @@
   .year-panel-inner img{ width:100%; display:block; border-radius:8px; border:1px solid var(--line); }
 
   .footnote{ text-align:center; font-size:11px; color:var(--ink-soft); padding:20px 20px 30px; line-height:1.7; }
+  .home-tiles + .footnote{ padding-top:6px; }
 
   /* ===================== 비상연락망 ===================== */
   .emg-callout{
@@ -1105,7 +1106,7 @@ function renderHome(){
         <a class="home-tile tile-incident" href="#" onclick="navigate('incidents');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><rect x="11" y="6.3" width="2" height="7.2" rx="1" fill="#fff"/><circle cx="12" cy="16.5" r="1.2" fill="#fff"/></svg></span>
           <span class="label">중대재해 발생 알림</span>
-          <span class="desc">타 사업장 중대재해 사례 공유</span>
+          <span class="desc">중대재해 발생 사례 공유</span>
         </a>
         <a class="home-tile tile-training" href="#" onclick="navigate('training');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 5a1 1 0 0 1 1-1h6v16H5a1 1 0 0 1-1-1V5z" fill="currentColor" opacity="0.8"/><path d="M20 5a1 1 0 0 0-1-1h-6v16h6a1 1 0 0 0 1-1V5z" fill="currentColor"/></svg></span>
