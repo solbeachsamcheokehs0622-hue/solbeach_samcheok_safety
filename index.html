@@ -754,6 +754,14 @@
   .stage-cold-caution .dot{ background:#8FB6D9; }
   .stage-cold-warning .dot{ background:#4E86BF; }
   .stage-cold-danger .dot{ background:#123C63; }
+  .illness-heat .dot{ background:#E68C28; }
+  .illness-cold .dot{ background:#4E86BF; }
+  .illness-def{ font-size:12px; color:var(--ink-soft); line-height:1.6; margin:0 0 10px; }
+  .illness-sub-title{
+    font-size:11px; font-weight:800; color:var(--ink);
+    margin:10px 0 4px;
+  }
+  .illness-sub-title:first-of-type{ margin-top:0; }
   .stage-btn .st-title{ flex:1; font-size:13px; font-weight:700; }
   .stage-btn .st-temp{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
   .stage-panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
@@ -912,28 +920,39 @@ const CATEGORIES = [
 ];
 
 /* ============================================================
-   온열·한랭질환 대응 기준 (고용노동부 폭염 대비 노동자 건강보호
-   대책 기준 반영. 한랭질환 부분은 안전보건공단 한랭질환 예방가이드의
-   일반 원칙을 단계별로 재구성한 참고용 기준입니다.)
+   기상청 공식 특보 발령기준 + 사업장 대응조치
+   (사업장 대응조치는 고용노동부 폭염 대비 노동자 건강보호 대책 기준.
+   폭염특보 발령기준은 기상청 공식 기준을 그대로 반영했습니다.
+   한파는 공식 특보가 주의보·경보 2단계뿐이라, "위험"은 저희가
+   경보 이상 상황에 대비해 확장한 참고용 단계입니다.)
    ============================================================ */
 const STAGES = [
   {
-    group: "heat", key: "heat-caution", title: "폭염주의보", temp: "체감 33℃ 이상",
+    group: "heat", key: "heat-caution", title: "폭염주의보",
+    temp: "일 최고체감온도 33℃ 이상 · 2일 이상 지속 예상",
     items: [
+      "[발령기준] 일 최고체감온도 33℃ 이상이 2일 이상 지속될 것으로 예상될 때",
       "매 2시간 이내 20분 이상의 휴식 부여",
       "작업의 성질상 휴식 부여가 매우 곤란한 경우, 개인용 보냉장구 지급·착용 등 근로자 체온상승을 줄일 수 있는 조치"
     ]
   },
   {
-    group: "heat", key: "heat-warning", title: "폭염경보", temp: "체감 35℃ 이상",
+    group: "heat", key: "heat-warning", title: "폭염경보",
+    temp: "일 최고체감온도 35℃ 이상 · 2일 이상 지속 예상",
     items: [
+      "[발령기준] 일 최고체감온도 35℃ 이상이 2일 이상 지속될 것으로 예상될 때",
       "무더위 시간대(14~17시)에는 불가피한 경우를 제외하고 옥외작업 중지",
       "업무담당자를 지정하여 근로자 건강상태 확인"
     ]
   },
   {
-    group: "heat", key: "heat-danger", title: "폭염중대경보", temp: "체감 38℃ 이상",
+    group: "heat", key: "heat-danger", title: "폭염중대경보",
+    temp: "일 최고체감온도 38℃ 이상 또는 일 최고기온 39℃ 이상",
     items: [
+      "[발령기준] 다음 중 하나에 해당할 때",
+      "· 일 최고체감온도 38℃ 이상이 1일 이상 지속될 것으로 예상될 때",
+      "· 일 최고기온 39℃ 이상이 1일 이상 지속될 것으로 예상될 때",
+      "· 일 최고체감온도 35℃ 이상이 2일 이상 관측된 지역에서 위 조건에 해당하는 경우",
       "재난 및 안전관리 등에 필요한 긴급조치 작업 외 옥외작업 중지",
       "열사병 등 온열질환 민감군에 대하여 옥외작업 제한",
       "업무담당자를 지정하여 근로자 건강상태 확인",
@@ -941,30 +960,172 @@ const STAGES = [
     ]
   },
   {
-    group: "cold", key: "cold-caution", title: "한파주의", temp: "체감 -10℃ 이하 (참고기준)",
+    group: "cold", key: "cold-caution", title: "한파주의보",
+    temp: "아침 최저기온 -12℃ 이하 등 · 2일 이상 지속 예상",
     items: [
+      "[발령기준] 10월~4월 중 다음 중 하나에 해당할 때",
+      "· 아침 최저기온이 전날보다 10℃ 이상 하강하여 3℃ 이하이면서 평년값보다 3℃ 이상 낮을 것으로 예상될 때",
+      "· 아침 최저기온 -12℃ 이하가 2일 이상 지속될 것으로 예상될 때",
       "방한복·방한장갑 등 보온장구 착용, 따뜻한 물 상시 섭취",
       "규칙적인 휴식시간 부여 및 추위를 피할 수 있는 따뜻한 장소 확보",
       "2인 1조 배치로 작업자 간 상호 이상징후 관찰"
     ]
   },
   {
-    group: "cold", key: "cold-warning", title: "한파경보", temp: "체감 -12℃ 이하 (참고기준)",
+    group: "cold", key: "cold-warning", title: "한파경보",
+    temp: "아침 최저기온 -15℃ 이하 등 · 2일 이상 지속 예상",
     items: [
+      "[발령기준] 10월~4월 중 다음 중 하나에 해당할 때",
+      "· 아침 최저기온이 전날보다 15℃ 이상 하강하여 3℃ 이하이면서 평년값보다 3℃ 이상 낮을 것으로 예상될 때",
+      "· 아침 최저기온 -15℃ 이하가 2일 이상 지속될 것으로 예상될 때",
       "추운 시간대에 휴게시간을 집중 배치하고, 평소보다 더 자주·길게 휴식 부여",
       "한랭질환 경고증상(오한, 손발 저림 등)을 느끼는 근로자는 정해진 휴식시간과 무관하게 즉시 작업 중단·휴식 허용, 이로 인한 불이익 금지",
       "민감군(고혈압·당뇨 등 기저질환자) 근로자는 가급적 옥외작업 자제"
     ]
   },
   {
-    group: "cold", key: "cold-danger", title: "한파중대경보", temp: "체감 -15℃ 이하 (참고기준)",
+    group: "cold", key: "cold-danger", title: "한파경보 이상 (참고)",
+    temp: "체감 -18℃ 이하 (기상청 공식 3단계 아님·참고용)",
     items: [
+      "기상청 한파특보는 주의보·경보 2단계까지만 있습니다. 이 단계는 경보가 이미 발효된 상태에서 상황이 더 심각해질 경우를 대비한 저희 자체 참고 기준입니다.",
       "한파특보 현황 등 기상상황과 예방조치 정보를 근로자에게 실시간 공유",
       "저체온증 등 중증 한랭질환 의심 시 즉시 119 신고 및 응급처치",
       "불가피한 경우를 제외하고 옥외작업 최소화·중지 검토"
     ]
   }
 ];
+
+/* ============================================================
+   더위질병 · 한파질병 상식 (질병관리청 온열질환·한랭질환 응급대응요령)
+   ============================================================ */
+const ILLNESSES = [
+  {
+    group: "heat", key: "ill-heatstroke", title: "열사병 (Heat stroke)",
+    subtitle: "가장 위험 · 즉시 119",
+    definition: "체온을 조절하는 신경계(체온조절 중추)가 열 자극을 견디지 못해 그 기능을 상실한 질환. 다발성 장기손상 등 합병증이 발생할 수 있고 치사율이 높아 온열질환 중 가장 위험합니다.",
+    symptoms: [
+      "중추신경 기능장애(의식장애·혼수상태)",
+      "땀이 나지 않아 건조하고 뜨거운 피부(40℃ 초과)",
+      "심한 두통, 오한, 빈맥, 빈호흡, 저혈압"
+    ],
+    treatment: [
+      "119에 즉시 신고합니다",
+      "환자를 시원한 장소로 옮깁니다",
+      "옷을 느슨하게 하고 몸에 시원한 물을 적셔 부채·선풍기로 식힙니다",
+      "얼음주머니를 목, 겨드랑이 밑, 서혜부에 대어 체온을 낮춥니다"
+    ]
+  },
+  {
+    group: "heat", key: "ill-exhaustion", title: "열탈진 (Heat exhaustion)",
+    subtitle: "수분·염분 부족",
+    definition: "땀을 많이 흘려 수분과 염분이 적절히 공급되지 못하는 경우 발생합니다.",
+    symptoms: [
+      "과도한 발한, 차고 젖은 피부, 창백함",
+      "체온은 크게 상승하지 않음(40℃ 이하)",
+      "극심한 무력감·피로, 근육경련",
+      "오심 또는 구토, 혼미, 어지럼증"
+    ],
+    treatment: [
+      "시원한 곳 또는 에어컨이 있는 장소에서 휴식합니다",
+      "물을 섭취하여 수분을 보충합니다",
+      "시원한 물로 샤워하거나 목욕합니다",
+      "증상이 1시간 이상 지속되거나 회복되지 않으면 의료기관에서 진료를 받습니다 (병원에서 수액으로 수분·전해질 보충)"
+    ]
+  },
+  {
+    group: "heat", key: "ill-cramp", title: "열경련 (Heat cramp)",
+    subtitle: "근육경련",
+    definition: "땀을 많이 흘려 체내 염분(나트륨)이 부족해 근육경련이 발생하는 질환. 고온 환경에서 강한 노동이나 운동을 할 경우 발생합니다.",
+    symptoms: [
+      "근육경련(팔, 다리, 복부, 손가락)"
+    ],
+    treatment: [
+      "시원한 곳에서 휴식하고 물을 섭취합니다",
+      "경련이 일어난 근육을 마사지합니다",
+      "경련이 1시간 넘게 지속되거나, 심장질환 기저질환이 있거나, 평소 저염분 식이를 하는 경우 즉시 응급실을 방문합니다"
+    ]
+  },
+  {
+    group: "heat", key: "ill-syncope", title: "열실신 (Heat syncope)",
+    subtitle: "일시적 의식소실",
+    definition: "체표면 혈액량은 늘고 심부 혈액량은 줄어 뇌로 가는 혈액이 부족해 일시적으로 의식을 잃는 질환. 앉아있거나 누워있다 갑자기 일어나거나 오래 서있을 때 발생합니다.",
+    symptoms: [
+      "실신(일시적 의식소실), 어지러움증"
+    ],
+    treatment: [
+      "시원한 장소로 옮겨 평평한 곳에 눕힙니다",
+      "다리를 머리보다 높게 올립니다",
+      "의사소통이 될 경우, 물을 천천히 마시게 합니다"
+    ]
+  },
+  {
+    group: "heat", key: "ill-edema", title: "열부종 (Heat edema)",
+    subtitle: "손·발 부종",
+    definition: "체표면 혈액량 증가·심부 혈액량 감소 상태에서 오래 서있거나 앉아있으면 혈액 내 수분이 혈관 밖으로 이동하며 부종이 발생합니다.",
+    symptoms: [
+      "손, 발, 다리 등의 부종"
+    ],
+    treatment: [
+      "시원한 장소로 옮겨 평평한 곳에 눕힙니다",
+      "부종이 발생한 부위를 심장보다 높게 올립니다"
+    ]
+  },
+  {
+    group: "heat", key: "ill-rash", title: "열발진 · 땀띠 (Heat rash)",
+    subtitle: "붉은 뾰루지·물집",
+    definition: "땀관 또는 땀관 구멍 일부가 막혀 땀이 표피로 원활히 배출되지 못하고 축적되어 작은 발진과 물집이 발생하는 질환입니다.",
+    symptoms: [
+      "여러 개의 붉은 뾰루지 또는 물집 (목, 가슴상부, 사타구니, 팔·다리 안쪽)"
+    ],
+    treatment: [
+      "시원하고 건조한 환경을 유지하고, 해당 부위를 청결·건조하게 관리합니다",
+      "증상이 심하거나 지속되면 병원 진료를 받습니다"
+    ]
+  },
+  {
+    group: "cold", key: "ill-hypothermia", title: "저체온증",
+    subtitle: "즉시 119",
+    definition: null,
+    symptoms: [
+      "말이 어눌해지거나 기억장애 발생",
+      "점점 의식이 흐려짐",
+      "지속적인 피로감",
+      "팔, 다리의 심한 떨림 증상"
+    ],
+    treatment: [
+      "신속히 병원으로 가거나 바로 119에 신고합니다",
+      "젖은 옷은 벗기고 담요나 침낭으로 감쌉니다",
+      "겨드랑이, 배 위에 핫팩이나 더운 물통 등을 둡니다 (없으면 사람을 껴안는 것도 효과적입니다)",
+      "의식이 있는 경우 따뜻한 음료가 도움이 될 수 있으나, 의식이 없는 경우에는 주지 않습니다"
+    ]
+  },
+  {
+    group: "cold", key: "ill-frostbite", title: "동상",
+    subtitle: "1~4도 · 병원 진료 우선",
+    definition: "1도: 찌르는 듯한 통증, 붉어지고 가려움, 부종 / 2도: 피부가 검붉어지고 물집 / 3도: 피부·피하조직 괴사, 감각 소실 / 4도: 근육 및 뼈까지 괴사",
+    symptoms: [],
+    treatment: [
+      "병원을 방문하여 진료를 받는 것이 우선입니다",
+      "환자를 따뜻한 환경으로 옮깁니다",
+      "동상 부위를 따뜻한 물(38~42℃)에 담급니다",
+      "얼굴·귀는 따뜻한 물수건을 대주고 자주 갈아줍니다",
+      "손·발은 손가락·발가락 사이에 소독된 마른 거즈를 끼워 습기를 제거하고 서로 붙지 않게 합니다",
+      "동상 부위를 약간 높게 하여 부종·통증을 줄입니다",
+      "다리·발 동상 환자는 들것으로 운반합니다 (녹은 후에도 걸어서는 안 됩니다)"
+    ]
+  },
+  {
+    group: "cold", key: "ill-injury", title: "낙상 손상",
+    subtitle: "미끄러짐·넘어짐",
+    definition: "빙판 등에서의 미끄러짐, 넘어짐, 떨어짐 등에 의한 탈구, 골절, 타박상입니다.",
+    symptoms: [],
+    treatment: [
+      "홀로 거동이 어려운 경우 빠르게 119에 신고합니다",
+      "환자가 편안해하는 자세 그대로 움직이지 않게 고정하고 도움을 청합니다 (필요시 부목 등으로 고정)"
+    ]
+  }
+];
+
 
 const EMERGENCY_GROUPS = [
   {
@@ -1530,15 +1691,44 @@ function stageItemHTML(s, activeKey){
   `;
 }
 
+function illnessItemHTML(ill){
+  return `
+    <div class="stage-item illness-item illness-${ill.group}" data-key="${ill.key}">
+      <button class="stage-btn" type="button">
+        <span class="dot"></span>
+        <span class="st-title">${ill.title}</span>
+        <span class="st-temp">${ill.subtitle || ''}</span>
+      </button>
+      <div class="stage-panel">
+        <div class="stage-panel-inner">
+          ${ill.definition ? `<p class="illness-def">${ill.definition}</p>` : ''}
+          ${ill.symptoms && ill.symptoms.length ? `
+            <div class="illness-sub-title">증상</div>
+            <ul>${ill.symptoms.map(t => `<li>${t}</li>`).join('')}</ul>
+          ` : ''}
+          <div class="illness-sub-title">대처요령</div>
+          <ul>${ill.treatment.map(t => `<li>${t}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderSheetBody(activeKey){
   const heat = STAGES.filter(s => s.group === 'heat');
   const cold = STAGES.filter(s => s.group === 'cold');
+  const heatIll = ILLNESSES.filter(s => s.group === 'heat');
+  const coldIll = ILLNESSES.filter(s => s.group === 'cold');
   document.getElementById('sheetBody').innerHTML = `
-    <div class="sheet-group-title">폭염 단계별 대응</div>
+    <div class="sheet-group-title">폭염 단계별 대응 (기상청 발령기준)</div>
     ${heat.map(s => stageItemHTML(s, activeKey)).join('')}
-    <div class="sheet-group-title">한파 단계별 대응 (참고기준)</div>
+    <div class="sheet-group-title">한파 단계별 대응 (기상청 발령기준)</div>
     ${cold.map(s => stageItemHTML(s, activeKey)).join('')}
-    <div class="empty" style="margin-top:10px;">참고용 기준이며, 실제 특보 발령·조치는 기상청·고용노동부 공식 발표를 우선합니다.</div>
+    <div class="empty" style="margin-top:10px;">사업장 조치사항은 참고용이며, 실제 특보 발령·조치는 기상청·고용노동부 공식 발표를 우선합니다.</div>
+    <div class="sheet-group-title">더위질병 상식</div>
+    ${heatIll.map(ill => illnessItemHTML(ill)).join('')}
+    <div class="sheet-group-title">한파질병 상식</div>
+    ${coldIll.map(ill => illnessItemHTML(ill)).join('')}
   `;
   document.querySelectorAll('.stage-item').forEach(item => {
     const btn = item.querySelector('.stage-btn');
@@ -1598,10 +1788,10 @@ function stageNoteText(temp, cls, label){
     else if(cls === 'lv-warning') next = '38℃ 이상 시 위험';
     else if(cls === 'lv-danger') next = '온열질환 위험 단계';
   } else if(temp <= 10){
-    source = '참고기준';
-    if(cls === 'lv-normal') next = '-10℃ 이하 시 주의';
-    else if(cls === 'lv-caution') next = '-12℃ 이하 시 경보';
-    else if(cls === 'lv-warning') next = '-15℃ 이하 시 위험';
+    source = '기상청 기준';
+    if(cls === 'lv-normal') next = '-12℃ 이하 시 주의';
+    else if(cls === 'lv-caution') next = '-15℃ 이하 시 경보';
+    else if(cls === 'lv-warning') next = '-18℃ 이하 시 위험(참고)';
     else if(cls === 'lv-danger') next = '한랭질환 위험 단계';
   } else {
     return `현재 단계: <b>${label}</b>`;
