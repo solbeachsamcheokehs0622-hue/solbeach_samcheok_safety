@@ -182,6 +182,8 @@
   .home-tile.tile-library .ic{ background:rgba(29,111,176,0.14); color:var(--blue); }
   .home-tile.tile-emergency .ic{ background:rgba(63,169,197,0.2); color:var(--sea-foam); }
   .home-tile.tile-report .ic{ background:rgba(216,85,61,0.16); color:#D8553D; }
+  .home-tile.tile-incident .ic{ background:rgba(216,85,61,0.16); color:#D8553D; }
+  .home-tile.tile-training .ic{ background:rgba(29,111,176,0.14); color:var(--blue); }
   .home-tile .ic svg{ display:block; }
   .home-tile .label{ font-size:14px; font-weight:700; }
   .home-tile .desc{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
@@ -254,6 +256,14 @@
   .notice-form input{
     border:1px solid var(--line); border-radius:8px; padding:9px 10px;
     font-size:13px; font-family:inherit; color:var(--ink); background:var(--sand);
+  }
+  .notice-form select.incident-select{
+    border:1px solid var(--line); border-radius:8px; padding:9px 10px;
+    font-size:13px; font-family:inherit; color:var(--ink); background:var(--sand);
+  }
+  .notice-form input[type="file"]{
+    border:1px dashed var(--line); border-radius:8px; padding:10px;
+    font-size:12px; font-family:inherit; color:var(--ink-soft); background:var(--sand);
   }
   .notice-form .form-actions{ display:flex; gap:8px; justify-content:flex-end; }
   .notice-form button.primary{
@@ -1092,6 +1102,16 @@ function renderHome(){
           <span class="label">안전신고제</span>
           <span class="desc">위험요인 및 개선사항 신고</span>
         </a>
+        <a class="home-tile tile-incident" href="#" onclick="navigate('incidents');return false;">
+          <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><rect x="11" y="6.3" width="2" height="7.2" rx="1" fill="#fff"/><circle cx="12" cy="16.5" r="1.2" fill="#fff"/></svg></span>
+          <span class="label">중대재해 발생 알림</span>
+          <span class="desc">타 사업장 중대재해 사례 공유</span>
+        </a>
+        <a class="home-tile tile-training" href="#" onclick="navigate('training');return false;">
+          <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 5a1 1 0 0 1 1-1h6v16H5a1 1 0 0 1-1-1V5z" fill="currentColor" opacity="0.8"/><path d="M20 5a1 1 0 0 0-1-1h-6v16h6a1 1 0 0 0 1-1V5z" fill="currentColor"/></svg></span>
+          <span class="label">교육자료실</span>
+          <span class="desc">안전보건 교육자료 및 링크</span>
+        </a>
       </div>
       <div class="footnote">
         본 페이지는 사업장 게시 의무 자료의 열람 편의를 위해 제공됩니다.<br/>
@@ -1304,6 +1324,31 @@ function renderReport(){
   `;
 }
 
+/* ---------- 중대재해 발생 알림 ---------- */
+function renderIncidents(){
+  return `
+    ${navbarHTML('중대재해 발생 알림')}
+    <div class="notice-toolbar">
+      <button id="incidentAdminBtn" onclick="toggleIncidentAdmin()">🔒 관리자 글쓰기</button>
+    </div>
+    <div id="incidentFormWrap"></div>
+    <div class="section" style="padding-top:6px;">
+      <div id="incidentList" class="empty">불러오는 중...</div>
+    </div>
+  `;
+}
+
+/* ---------- 교육자료실 (준비 중) ---------- */
+function renderTraining(){
+  return `
+    ${navbarHTML('교육자료실')}
+    <div class="page-head"><h2>교육자료실</h2></div>
+    <div class="section" style="padding-top:0;">
+      <div class="empty">준비 중입니다. 안전보건 교육자료와 링크를 정리해 곧 게시하겠습니다.</div>
+    </div>
+  `;
+}
+
 /* ---------- 아코디언(연도별 이미지) 이벤트 바인딩 ---------- */
 function wireYearAccordion(){
   document.querySelectorAll('.year-item').forEach(item => {
@@ -1349,6 +1394,8 @@ function render(){
   else if(view === 'notice-detail') html = renderNoticeDetail(nid);
   else if(view === 'emergency') html = renderEmergency();
   else if(view === 'report') html = renderReport();
+  else if(view === 'incidents') html = renderIncidents();
+  else if(view === 'training') html = renderTraining();
   else html = renderHome();
 
   app.innerHTML = `<div class="wrap">${html}</div>`;
@@ -1358,6 +1405,7 @@ function render(){
   if(document.getElementById('weatherCard')) loadWeather();
   if(document.getElementById('noticeList')) loadNotices();
   if(document.getElementById('noticeDetail')) loadNoticeDetail(nid);
+  if(document.getElementById('incidentList')) loadIncidents();
   if(document.getElementById('libGateInput')) document.getElementById('libGateInput').focus();
 }
 
@@ -1863,6 +1911,225 @@ async function deleteNotice(id){
     if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     lastNotices = data.notices || [];
     renderNoticeList();
+  }catch(err){
+    alert('삭제 실패: ' + (err.message || err));
+  }
+}
+
+/* ============================================================
+   중대재해 발생 알림 — 이미지는 클릭했을 때만 서버에서 불러옵니다
+   (목록은 가벼운 인덱스만, 사진은 필요할 때 지연 로딩)
+   ============================================================ */
+let isIncidentAdmin = false;
+let lastIncidents = [];
+let incidentPendingImage = null; // 업로드 대기 중인 압축된 이미지(base64 dataURL)
+
+function compressImageFile(file, maxWidth, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxWidth){ h = Math.round(h * maxWidth / w); w = maxWidth; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('이미지를 읽을 수 없습니다.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('파일을 읽을 수 없습니다.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadIncidents(){
+  const listEl = document.getElementById('incidentList');
+  if(!listEl) return;
+  try{
+    const res = await fetch('/api/incidents');
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    lastIncidents = data.incidents || [];
+    renderIncidentList();
+  }catch(err){
+    listEl.className = 'empty';
+    listEl.textContent = `불러오지 못했습니다. (${err.message || err})`;
+  }
+}
+
+function renderIncidentList(){
+  const listEl = document.getElementById('incidentList');
+  if(!listEl) return;
+  if(!lastIncidents || lastIncidents.length === 0){
+    listEl.className = 'empty';
+    listEl.textContent = '등록된 중대재해 발생 알림이 없습니다.';
+    return;
+  }
+  listEl.className = 'year-accordion';
+  listEl.innerHTML = lastIncidents.map((inc, i) => `
+    <div class="year-item" data-id="${inc.id}" data-path="${inc.path}">
+      <button class="year-btn" type="button">
+        <span class="yr-badge">🚨</span>
+        <span class="yr-title">${i === 0 ? '<span class="badge-new">NEW</span> ' : ''}${escapeHtml(inc.title)}</span>
+        <span class="chevron">▾</span>
+      </button>
+      <div class="year-panel">
+        <div class="year-panel-inner"></div>
+      </div>
+      ${isIncidentAdmin ? `<div class="n-del-row" onclick="event.stopPropagation(); deleteIncident('${inc.id}')">이 게시물 삭제</div>` : ''}
+    </div>
+  `).join('');
+  wireIncidentAccordion();
+}
+
+function wireIncidentAccordion(){
+  document.querySelectorAll('#incidentList .year-item').forEach(item => {
+    const btn = item.querySelector('.year-btn');
+    const panel = item.querySelector('.year-panel');
+    const inner = panel.querySelector('.year-panel-inner');
+    const path = item.dataset.path;
+
+    btn.addEventListener('click', async () => {
+      const isOpen = item.classList.contains('open');
+
+      document.querySelectorAll('#incidentList .year-item.open').forEach(other => {
+        if(other !== item){
+          other.classList.remove('open');
+          other.querySelector('.year-panel').style.maxHeight = null;
+        }
+      });
+
+      if(isOpen){
+        item.classList.remove('open');
+        panel.style.maxHeight = null;
+        return;
+      }
+
+      item.classList.add('open');
+
+      if(inner.dataset.loaded === '1'){
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+        return;
+      }
+
+      panel.style.maxHeight = '260px'; // 로딩 중 임시 높이
+      inner.innerHTML = `<div class="empty" style="margin:0;">이미지 불러오는 중...</div>`;
+
+      try{
+        const res = await fetch(`/api/incidents?image=${encodeURIComponent(path)}`);
+        const data = await res.json();
+        if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+        inner.innerHTML = `<img src="${data.dataUrl}" alt="중대재해 발생 알림 이미지"
+          onload="this.closest('.year-panel').style.maxHeight = this.closest('.year-panel').scrollHeight + 'px'">`;
+        inner.dataset.loaded = '1';
+      }catch(err){
+        inner.innerHTML = `<div class="empty" style="margin:0;">이미지를 불러오지 못했습니다. (${err.message || err})</div>`;
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+      }
+    });
+  });
+}
+
+function toggleIncidentAdmin(){
+  const btn = document.getElementById('incidentAdminBtn');
+  const formWrap = document.getElementById('incidentFormWrap');
+
+  if(isIncidentAdmin){
+    isIncidentAdmin = false;
+    formWrap.innerHTML = '';
+    btn.textContent = '🔒 관리자 글쓰기';
+    renderIncidentList();
+    return;
+  }
+
+  const pw = prompt('관리자 비밀번호를 입력하세요');
+  if(pw === null) return;
+  if(pw !== '4860'){
+    alert('비밀번호가 올바르지 않습니다.');
+    return;
+  }
+
+  isIncidentAdmin = true;
+  incidentPendingImage = null;
+  btn.textContent = '✕ 글쓰기 닫기';
+  formWrap.innerHTML = `
+    <div class="notice-form">
+      <select id="incidentIndustrySelect" class="incident-select">
+        <option value="제조업">제조업</option>
+        <option value="건설업">건설업</option>
+        <option value="기타업">기타업</option>
+      </select>
+      <input type="file" id="incidentFileInput" accept="image/*">
+      <div id="incidentPreview"></div>
+      <div class="form-actions">
+        <button class="ghost" type="button" onclick="clearIncidentForm()">지우기</button>
+        <button class="primary" type="button" onclick="submitIncident()">등록</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('incidentFileInput').addEventListener('change', handleIncidentFileChange);
+  renderIncidentList();
+}
+
+function clearIncidentForm(){
+  incidentPendingImage = null;
+  const fileInput = document.getElementById('incidentFileInput');
+  const preview = document.getElementById('incidentPreview');
+  if(fileInput) fileInput.value = '';
+  if(preview) preview.innerHTML = '';
+}
+
+async function handleIncidentFileChange(e){
+  const file = e.target.files[0];
+  const preview = document.getElementById('incidentPreview');
+  if(!file){ incidentPendingImage = null; preview.innerHTML = ''; return; }
+  preview.innerHTML = '<div class="empty" style="margin:8px 0 0;">이미지 처리 중...</div>';
+  try{
+    const dataUrl = await compressImageFile(file, 1200, 0.82);
+    incidentPendingImage = dataUrl;
+    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;border-radius:8px;margin-top:8px;display:block;">`;
+  }catch(err){
+    incidentPendingImage = null;
+    preview.innerHTML = `<div class="empty" style="margin:8px 0 0;">이미지를 불러오지 못했습니다.</div>`;
+  }
+}
+
+async function submitIncident(){
+  const industryEl = document.getElementById('incidentIndustrySelect');
+  const industry = industryEl ? industryEl.value : '기타업';
+  if(!incidentPendingImage){ alert('이미지를 선택해주세요.'); return; }
+
+  try{
+    const res = await fetch('/api/incidents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: '4860', industry, imageDataUrl: incidentPendingImage })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    lastIncidents = data.incidents || [];
+    clearIncidentForm();
+    renderIncidentList();
+  }catch(err){
+    alert('등록 실패: ' + (err.message || err));
+  }
+}
+
+async function deleteIncident(id){
+  if(!confirm('이 게시물을 삭제하시겠습니까?')) return;
+  try{
+    const res = await fetch('/api/incidents', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: '4860', id })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    lastIncidents = data.incidents || [];
+    renderIncidentList();
   }catch(err){
     alert('삭제 실패: ' + (err.message || err));
   }
