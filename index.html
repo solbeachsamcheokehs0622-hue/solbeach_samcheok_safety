@@ -1109,7 +1109,7 @@ function renderHome(){
         </a>
         <a class="home-tile tile-library" href="#" onclick="navigate('library');return false;">
           <span class="ic"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" fill="currentColor"/></svg></span>
-          <span class="label">안전보건자료실</span>
+          <span class="label">안전보건 자료실</span>
           <span class="desc">안전보건 게시자료</span>
         </a>
         <a class="home-tile tile-emergency" href="#" onclick="navigate('emergency');return false;">
@@ -1155,12 +1155,12 @@ function renderLibraryGate(){
       <div class="gate-card">
         <div class="gate-ic">🔒</div>
         <h2>안전보건 자료실</h2>
-        <p>내부 안전보건 자료 열람을 위해<br>비밀번호를 입력해주세요.</p>
+        <p>쏠비치 삼척 안전보건 자료 열람을 위해<br>비밀번호를 입력해주세요.</p>
         <input type="password" id="libGateInput" inputmode="numeric" placeholder="비밀번호"
           onkeydown="if(event.key==='Enter') submitLibraryGate()">
         <button type="button" onclick="submitLibraryGate()">확인</button>
         <div class="gate-error" id="libGateError"></div>
-        <div class="gate-hint">이 기기에서는 한 번만 입력하면 됩니다.</div>
+        <div class="gate-hint">이 기기에서는 한 번만 입력하면 됩니다.<br>☆ 비밀번호는 네이버 밴드에서 확인 가능합니다. ☆</div>
       </div>
     </div>
   `;
