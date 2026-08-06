@@ -615,6 +615,19 @@
   .year-panel-inner{ padding:0 14px 14px; }
   .year-panel-inner img{ width:100%; display:block; border-radius:8px; border:1px solid var(--line); }
 
+  /* 컴팩트 목록 (중대재해 발생 알림 등 — 기본 아코디언보다 절반 정도 작게) */
+  .year-accordion.compact .year-btn{ padding:7px 10px; gap:7px; }
+  .year-accordion.compact .yr-badge{
+    width:22px; height:22px; border-radius:7px; font-size:10px;
+  }
+  .year-accordion.compact .yr-title{
+    font-size:11.5px; line-height:1.35; padding-top:3px;
+  }
+  .year-accordion.compact .chevron{ margin-top:3px; font-size:10.5px; }
+  .year-accordion.compact .badge-new{
+    font-size:8.5px; padding:1.5px 5px; margin-right:4px;
+  }
+
   .footnote{ text-align:center; font-size:11px; color:var(--ink-soft); padding:20px 20px 30px; line-height:1.7; }
   .home-tiles + .footnote{ padding-top:6px; }
 
@@ -1963,7 +1976,7 @@ async function loadIncidents(){
 
 function shortIncidentTitle(inc){
   const d = (inc.date || '').replaceAll('-', '.');
-  return `${d} 중대재해 알림🚨 [${inc.industry}]`;
+  return `${d} · [${inc.industry}]`;
 }
 
 function renderIncidentList(){
@@ -1974,12 +1987,12 @@ function renderIncidentList(){
     listEl.textContent = '등록된 중대재해 발생 알림이 없습니다.';
     return;
   }
-  listEl.className = 'year-accordion';
+  listEl.className = 'year-accordion compact';
   listEl.innerHTML = lastIncidents.map((inc, i) => `
     <div class="year-item" data-id="${inc.id}" data-path="${inc.path}">
       <button class="year-btn" type="button">
         <span class="yr-badge">🚨</span>
-        <span class="yr-title">${i === 0 ? '<span class="badge-new">NEW</span> ' : ''}${escapeHtml(shortIncidentTitle(inc))}</span>
+        <span class="yr-title">${i === 0 ? '<span class="badge-new">NEW</span>' : ''}${escapeHtml(shortIncidentTitle(inc))}</span>
         <span class="chevron">▾</span>
       </button>
       <div class="year-panel">
