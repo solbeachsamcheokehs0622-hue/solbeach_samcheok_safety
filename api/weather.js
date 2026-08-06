@@ -59,13 +59,13 @@ function computeFeelsLike(ta, rh, windMs) {
 function classifyLevel(ta, feelsLike) {
   if (ta >= 27) {
     if (feelsLike >= 38) return { cls: 'lv-danger', label: '위험' };
-    if (feelsLike >= 35) return { cls: 'lv-warning', label: '경보' };
+    if (feelsLike >= 35) return { cls: 'lv-warning', label: '경고' };
     if (feelsLike >= 33) return { cls: 'lv-caution', label: '주의' };
     return { cls: 'lv-normal', label: '정상' };
   }
   if (ta <= 10) {
     if (feelsLike <= -18) return { cls: 'lv-danger', label: '위험' };
-    if (feelsLike <= -15) return { cls: 'lv-warning', label: '경보' };
+    if (feelsLike <= -15) return { cls: 'lv-warning', label: '경고' };
     if (feelsLike <= -12) return { cls: 'lv-caution', label: '주의' };
     return { cls: 'lv-normal', label: '정상' };
   }
@@ -123,9 +123,22 @@ function weatherIconAndCondition(pty, sky) {
 }
 
 async function fetchSamcheokAdvisory(serviceKey) {
+  const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const fmt = (d) => {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}${m}${day}`;
+  };
+  const fromDate = new Date(now);
+  fromDate.setUTCDate(fromDate.getUTCDate() - 5);
+  const fromTmFc = fmt(fromDate);
+  const toTmFc = fmt(now);
+
   const url =
     `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList` +
-    `?serviceKey=${serviceKey}&pageNo=1&numOfRows=50&dataType=JSON&stnId=105`;
+    `?serviceKey=${serviceKey}&pageNo=1&numOfRows=100&dataType=JSON&stnId=105` +
+    `&fromTmFc=${fromTmFc}&toTmFc=${toTmFc}`;
   const data = await fetchJson(url);
   const body = data?.response?.body;
   const header = data?.response?.header;
