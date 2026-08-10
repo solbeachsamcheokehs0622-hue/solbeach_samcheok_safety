@@ -144,11 +144,25 @@ async function fetchSamcheokAdvisory(serviceKey) {
   const header = data?.response?.header;
 
   if (header && header.resultCode && header.resultCode !== '00') {
-    return { active: false, raw: data };
+    return {
+      active: false,
+      debug_resultCode: header.resultCode,
+      debug_resultMsg: header.resultMsg,
+      debug_url: url,
+    };
   }
 
   let items = body?.items?.item;
-  if (!items) return { active: false, raw: data };
+  const debug_totalCount = body?.totalCount ?? null;
+  if (!items) {
+    return {
+      active: false,
+      debug_totalCount,
+      debug_note: 'items가 비어있음(응답 자체에 특보 항목 없음)',
+      debug_bodyKeys: body ? Object.keys(body) : null,
+      debug_url: url,
+    };
+  }
   if (!Array.isArray(items)) items = [items];
 
   const matched = items.filter((it) => {
@@ -158,12 +172,14 @@ async function fetchSamcheokAdvisory(serviceKey) {
 
   return {
     active: matched.length > 0,
+    debug_totalCount,
+    debug_itemsReturned: items.length,
+    debug_sampleRawItem: items[0] || null,
     items: matched.map((it) => ({
       title: it.title || it.warnVar || null,
       content: it.t6 || it.t1 || null,
       tmFc: it.tmFc || null,
     })),
-    raw: matched.length > 0 ? matched : undefined,
   };
 }
 
