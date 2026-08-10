@@ -1909,13 +1909,10 @@ async function loadWeather(){
     const advText = card.querySelector('#advisoryText');
     if(advBox && advText){
       if(data.advisory && data.advisory.active && data.advisory.items && data.advisory.items.length){
-        // 원본 title은 "[특보] 제08-33호 : 2026.08.10.04:00 / 폭염주의보 발표" 형태라
-        // '/' 뒤의 핵심 문구만 뽑아서 보여줍니다.
-        const labels = data.advisory.items
-          .map(i => (i.title || '').split('/').pop().trim().replace(/\(\*\)\s*$/, '').trim())
-          .filter(Boolean);
+        // 서버에서 이미 "폭염주의보 : 강원도(횡성, 원주)" 같은 깔끔한 문장으로 정리해서 줍니다.
+        const labels = data.advisory.items.map(i => i.title).filter(Boolean);
         const uniqueLabels = [...new Set(labels)];
-        advText.textContent = uniqueLabels.length ? `삼척 ${uniqueLabels.join(', ')}` : '삼척 지역 기상특보 발효 중';
+        advText.textContent = uniqueLabels.length ? uniqueLabels.join(' · ') : '삼척 지역 기상특보 발효 중';
         advBox.classList.add('show');
       }else{
         advBox.classList.remove('show');
