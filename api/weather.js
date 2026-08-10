@@ -122,25 +122,15 @@ function weatherIconAndCondition(pty, sky) {
   return skyMap[sky] || { icon: '🌤️', text: '' };
 }
 
+// 강원(관서코드 105)의 최신 특보 통보문 1건을 조회합니다.
+// (실측 결과, 이 API는 tmFc로 과거 시점을 지정해도 항상 "현재 시점 기준
+// 최신 통보문 1건"만 돌려줍니다 — 그래서 목록을 여러 번 조회할 필요 없이
+// 이 한 번의 조회만으로 "지금" 상황을 정확히 파악할 수 있습니다)
 async function fetchSamcheokAdvisory(serviceKey) {
-  const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const fmt = (d) => {
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(d.getUTCDate()).padStart(2, '0');
-    return `${y}${m}${day}`;
-  };
-  const fromDate = new Date(now);
-  fromDate.setUTCDate(fromDate.getUTCDate() - 5);
-  const fromTmFc = fmt(fromDate);
-  const toTmFc = fmt(now);
-
   const url =
-    `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList` +
-    `?serviceKey=${serviceKey}&pageNo=1&numOfRows=100&dataType=JSON&stnId=105` +
-    `&fromTmFc=${fromTmFc}&toTmFc=${toTmFc}`;
+    `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg` +
+    `?serviceKey=${serviceKey}&pageNo=1&numOfRows=10&dataType=JSON&stnId=105`;
   const data = await fetchJson(url);
-  const body = data?.response?.body;
   const header = data?.response?.header;
 
   if (header && header.resultCode && header.resultCode !== '00') {
@@ -148,66 +138,26 @@ async function fetchSamcheokAdvisory(serviceKey) {
       active: false,
       debug_resultCode: header.resultCode,
       debug_resultMsg: header.resultMsg,
-      debug_url: url,
     };
   }
 
-  let items = body?.items?.item;
-  const debug_totalCount = body?.totalCount ?? null;
-  if (!items) {
-    return {
-      active: false,
-      debug_totalCount,
-      debug_note: 'items가 비어있음(응답 자체에 특보 항목 없음)',
-      debug_bodyKeys: body ? Object.keys(body) : null,
-      debug_url: url,
-    };
-  }
-  if (!Array.isArray(items)) items = [items];
-
-  const KEYWORDS = ['폭염', '한파', '풍랑', '호우'];
-  const matched = items.filter((it) => {
-    const title = it.title || '';
-    const hasKeyword = KEYWORDS.some((k) => title.includes(k));
-    const isLifted = title.includes('해제');
-    return hasKeyword && !isLifted;
-  });
-
-  const detailChecked = [];
-  for (const it of matched) {
-    const stnId = it.stnId || '105';
-    const tmFc = it.tmFc;
-    let includesSamcheok = null;
-    let debugDetailPreview = null;
-    let debugDetailUrl = null;
-    try {
-      debugDetailUrl =
-        `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg` +
-        `?serviceKey=${serviceKey}&pageNo=1&numOfRows=10&dataType=JSON&stnId=${stnId}&tmFc=${tmFc}`;
-      const detailData = await fetchJson(debugDetailUrl);
-      debugDetailPreview = JSON.stringify(detailData).slice(0, 400);
-      const detailItems = detailData?.response?.body?.items?.item;
-      const detailArr = detailItems ? (Array.isArray(detailItems) ? detailItems : [detailItems]) : [];
-      const detailText = detailArr.map((d) => JSON.stringify(d)).join(' ');
-      includesSamcheok = detailText.includes('삼척');
-    } catch (e) {
-      includesSamcheok = null;
-      debugDetailPreview = `조회 실패: ${String(e)}`;
-    }
-    detailChecked.push({ title: it.title, tmFc, stnId, includesSamcheok, debugDetailPreview, debugDetailUrl });
+  const rawItem = data?.response?.body?.items?.item;
+  const rec = Array.isArray(rawItem) ? rawItem[0] : rawItem;
+  if (!rec) {
+    return { active: false, debug_note: '통보문이 비어있음' };
   }
 
-  const samcheokMatched = detailChecked.filter((d) => d.includesSamcheok === true);
-  const uncertain = detailChecked.filter((d) => d.includesSamcheok === null);
+  const lines = ['t1', 't2', 't3', 't4', 't6', 't7']
+    .map((k) => rec[k])
+    .filter((v) => typeof v === 'string' && v.trim() && !v.includes('없음'));
+
+  const samcheokLines = lines.filter((l) => l.includes('삼척'));
 
   return {
-    active: samcheokMatched.length > 0,
-    uncertainActive: uncertain.length > 0,
-    items: samcheokMatched.map((d) => ({ title: d.title, tmFc: d.tmFc })),
-    debug_totalCount,
-    debug_itemsReturned: items.length,
-    debug_matchedByKeyword: matched.length,
-    debug_detailChecked: detailChecked,
+    active: samcheokLines.length > 0,
+    items: samcheokLines.map((l) => ({ title: l.replace(/^o\s*/, '').trim() })),
+    debug_tmFc: rec.tmFc,
+    debug_allLines: lines,
   };
 }
 
