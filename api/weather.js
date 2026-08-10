@@ -166,8 +166,10 @@ async function fetchSamcheokAdvisory(serviceKey) {
   if (!Array.isArray(items)) items = [items];
 
   const matched = items.filter((it) => {
-    const text = JSON.stringify(it);
-    return text.includes('삼척');
+    const title = it.title || '';
+    const isHeatOrCold = title.includes('폭염') || title.includes('한파');
+    const isLifted = title.includes('해제');
+    return isHeatOrCold && !isLifted;
   });
 
   return {
@@ -176,8 +178,7 @@ async function fetchSamcheokAdvisory(serviceKey) {
     debug_itemsReturned: items.length,
     debug_sampleRawItem: items[0] || null,
     items: matched.map((it) => ({
-      title: it.title || it.warnVar || null,
-      content: it.t6 || it.t1 || null,
+      title: it.title || null,
       tmFc: it.tmFc || null,
     })),
   };
