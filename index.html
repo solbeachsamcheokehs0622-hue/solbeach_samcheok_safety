@@ -1915,7 +1915,7 @@ async function loadWeather(){
           .map(i => (i.title || '').split('/').pop().trim().replace(/\(\*\)\s*$/, '').trim())
           .filter(Boolean);
         const uniqueLabels = [...new Set(labels)];
-        advText.textContent = uniqueLabels.length ? `강원 지역 ${uniqueLabels.join(', ')}` : '강원 지역 기상특보 발효 중';
+        advText.textContent = uniqueLabels.length ? `삼척 ${uniqueLabels.join(', ')}` : '삼척 지역 기상특보 발효 중';
         advBox.classList.add('show');
       }else{
         advBox.classList.remove('show');
