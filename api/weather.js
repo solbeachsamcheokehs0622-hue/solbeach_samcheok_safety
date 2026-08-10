@@ -165,22 +165,49 @@ async function fetchSamcheokAdvisory(serviceKey) {
   }
   if (!Array.isArray(items)) items = [items];
 
+  const KEYWORDS = ['폭염', '한파', '풍랑', '호우'];
   const matched = items.filter((it) => {
     const title = it.title || '';
-    const isHeatOrCold = title.includes('폭염') || title.includes('한파');
+    const hasKeyword = KEYWORDS.some((k) => title.includes(k));
     const isLifted = title.includes('해제');
-    return isHeatOrCold && !isLifted;
+    return hasKeyword && !isLifted;
   });
 
+  const detailChecked = [];
+  for (const it of matched) {
+    const stnId = it.stnId || '105';
+    const tmFc = it.tmFc;
+    let includesSamcheok = null;
+    let debugDetailPreview = null;
+    let debugDetailUrl = null;
+    try {
+      debugDetailUrl =
+        `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg` +
+        `?serviceKey=${serviceKey}&pageNo=1&numOfRows=10&dataType=JSON&stnId=${stnId}&tmFc=${tmFc}`;
+      const detailData = await fetchJson(debugDetailUrl);
+      debugDetailPreview = JSON.stringify(detailData).slice(0, 400);
+      const detailItems = detailData?.response?.body?.items?.item;
+      const detailArr = detailItems ? (Array.isArray(detailItems) ? detailItems : [detailItems]) : [];
+      const detailText = detailArr.map((d) => JSON.stringify(d)).join(' ');
+      includesSamcheok = detailText.includes('삼척');
+    } catch (e) {
+      includesSamcheok = null;
+      debugDetailPreview = `조회 실패: ${String(e)}`;
+    }
+    detailChecked.push({ title: it.title, tmFc, stnId, includesSamcheok, debugDetailPreview, debugDetailUrl });
+  }
+
+  const samcheokMatched = detailChecked.filter((d) => d.includesSamcheok === true);
+  const uncertain = detailChecked.filter((d) => d.includesSamcheok === null);
+
   return {
-    active: matched.length > 0,
+    active: samcheokMatched.length > 0,
+    uncertainActive: uncertain.length > 0,
+    items: samcheokMatched.map((d) => ({ title: d.title, tmFc: d.tmFc })),
     debug_totalCount,
     debug_itemsReturned: items.length,
-    debug_sampleRawItem: items[0] || null,
-    items: matched.map((it) => ({
-      title: it.title || null,
-      tmFc: it.tmFc || null,
-    })),
+    debug_matchedByKeyword: matched.length,
+    debug_detailChecked: detailChecked,
   };
 }
 
