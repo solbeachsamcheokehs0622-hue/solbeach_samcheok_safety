@@ -646,6 +646,38 @@
   .year-panel-inner{ padding:0 14px 14px; }
   .year-panel-inner img{ width:100%; display:block; border-radius:8px; border:1px solid var(--line); }
 
+  /* ===================== MSDS 부서/팀 목록 ===================== */
+  .msds-list{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+  .msds-leaf{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:14px 15px; text-decoration:none; color:var(--ink);
+  }
+  .msds-leaf .msds-name{ font-size:13.5px; font-weight:700; }
+  .msds-leaf .go{ color:var(--ink-soft); font-size:14px; }
+  .msds-parent{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  }
+  .msds-parent-btn{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:14px 15px; background:transparent; border:none; font-family:'Noto Sans KR',sans-serif;
+    cursor:pointer; text-align:left;
+  }
+  .msds-parent-btn .msds-name{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .msds-sub-panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .msds-sub-inner{
+    display:flex; flex-direction:column; gap:6px;
+    padding:0 15px 14px;
+  }
+  .msds-sub-item{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--sand); border:1px solid var(--line); border-radius:9px;
+    padding:10px 12px; text-decoration:none; color:var(--ink);
+    font-size:12.5px; font-weight:600;
+  }
+  .msds-sub-item .go{ color:var(--ink-soft); font-size:13px; }
+  .msds-parent.open .detail-btn{ background:var(--blue); color:#fff; }
+
   /* 컴팩트 목록 (중대재해 발생 알림 등 — 기본 아코디언보다 절반 정도 작게, 세로 중앙 정렬) */
   .year-accordion.compact .year-btn{ padding:7px 10px; gap:7px; align-items:center; }
   .year-accordion.compact .yr-badge{
@@ -956,6 +988,34 @@ const CATEGORIES = [
     subtitle: "화학물질 유해성·보호구 및 응급조치 정보",
     desc: "사업장에서 취급하는 화학물질의 유해·위험성, 안전한 취급방법 및 응급조치 사항을 제공하는 자료입니다.",
     docs: []
+  }
+];
+
+/* MSDS 페이지 전용 — 부서별(일부는 팀별) 구글드라이브 링크 구조 */
+const MSDS_DEPTS = [
+  { name: "운영1(오션)", url: "https://drive.google.com/drive/folders/1tJ9TJfG4y8UnmlbeWBVkOLd9mTNipo30" },
+  { name: "운영2", url: "https://drive.google.com/drive/folders/17vh1sZwRxEljfoRgSWvaKxKK6gtFW9fk" },
+  { name: "조리", url: "https://drive.google.com/drive/folders/1hEf9y3GKptq1xDITeWj4Rgzle1EKNMMe" },
+  {
+    name: "BM",
+    teams: [
+      { name: "전기", url: "https://drive.google.com/drive/folders/1BUyxjaJKeDb24U5nZFhlxO051gmZz-zf" },
+      { name: "기계", url: "https://drive.google.com/drive/folders/1H9B9zTLa6lz_N3eOOptnP5Ser9LXTXcQ" },
+      { name: "환경", url: "https://drive.google.com/drive/folders/1AlMOR3fYzLTBifqb317yTNlHWVYxOiE1" },
+      { name: "소방", url: "https://drive.google.com/drive/folders/1hL4-1U15z1rFXxOKQqg573Qr-DV0F8r7" },
+      { name: "건축", url: "https://drive.google.com/drive/folders/15ZmHeaECJmKWFDnpR9-d-VFwCobD7E9K" },
+      { name: "목공", url: "https://drive.google.com/drive/folders/1-8Uxfhfk_GQxWx_kvpEeb1L9JipRWL8E" },
+      { name: "도배", url: "https://drive.google.com/drive/folders/1wuaOp-cj4RVYYKraa6C1CqMw3XX_uI9o" },
+      { name: "도장", url: "https://drive.google.com/drive/folders/1aJu0433jzoDfb-p2E_mILY1epoWxmprZ" },
+      { name: "조경", url: "https://drive.google.com/drive/folders/1ccXx9qlODawTNBlJVxxshtvlCc_bJ30t" }
+    ]
+  },
+  {
+    name: "ES",
+    teams: [
+      { name: "객실정비", url: "https://drive.google.com/drive/folders/1-4tM2w5fk6oZH7HY1nVftiJpIz-of0_T" },
+      { name: "공용정비", url: "https://drive.google.com/drive/folders/1JOag4wDncuxx_1_0RmtTeL2uXc_TYWvv" }
+    ]
   }
 ];
 
@@ -1400,7 +1460,9 @@ function renderLibrary(){
     ${navbarHTML('안전보건 자료실')}
     <div class="lib-list">
       ${CATEGORIES.map((c,i) => {
-        const total = c.docs.length + (c.yearDocs ? c.yearDocs.length : 0);
+        const isMsds = c.key === 'msds';
+        const total = isMsds ? MSDS_DEPTS.length : (c.docs.length + (c.yearDocs ? c.yearDocs.length : 0));
+        const cntText = isMsds ? `${MSDS_DEPTS.length}개 부서` : countLabel(total);
         return `
         <div class="lib-item" onclick="navigate('category','${c.key}')">
           <span class="num">${i+1}</span>
@@ -1408,7 +1470,7 @@ function renderLibrary(){
             <span class="name">${c.name}</span>
             ${c.subtitle ? `<span class="sub">${c.subtitle}</span>` : ''}
           </span>
-          <span class="cnt ${total === 0 ? 'pending' : ''}">${countLabel(total)}</span>
+          <span class="cnt ${total === 0 ? 'pending' : ''}">${cntText}</span>
           <span class="go">→</span>
         </div>
       `;
@@ -1422,6 +1484,50 @@ function renderCategory(key){
   const idx = CATEGORIES.findIndex(c => c.key === key);
   const cat = idx >= 0 ? CATEGORIES[idx] : CATEGORIES[0];
   const num = (idx >= 0 ? idx : 0) + 1;
+
+  if(cat.key === 'msds'){
+    return `
+      ${navbarHTML(cat.name)}
+      <div class="section">
+        <div class="cat-head">
+          <span class="num">${num}</span>
+          <h2>${cat.name}</h2>
+          <span class="cat-count">${MSDS_DEPTS.length}개 부서</span>
+        </div>
+        <p class="cat-desc">${cat.desc}</p>
+        <div class="msds-list">
+          ${MSDS_DEPTS.map(d => d.teams ? `
+            <div class="msds-parent" data-name="${d.name}">
+              <button class="msds-parent-btn" type="button">
+                <span class="msds-name">${d.name}</span>
+                <span class="detail-btn">하위팀 보기</span>
+              </button>
+              <div class="msds-sub-panel">
+                <div class="msds-sub-inner">
+                  ${d.teams.map(t => `
+                    <a class="msds-sub-item" href="${t.url}" target="_blank" rel="noopener">
+                      <span>${t.name}</span><span class="go">→</span>
+                    </a>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          ` : `
+            <a class="msds-leaf" href="${d.url}" target="_blank" rel="noopener">
+              <span class="msds-name">${d.name}</span>
+              <span class="go">→</span>
+            </a>
+          `).join('')}
+        </div>
+      </div>
+      <div class="footnote">
+        본 페이지는 사업장 게시 의무 자료의 열람 편의를 위해 제공됩니다.<br>
+        원본 서류는 EHS팀에서 관리하며, 문의사항은 EHS팀으로 연락 바랍니다.<br>
+        EHS 담당자 : 033-803-7840 / 내선전화 : 7840
+      </div>
+    `;
+  }
+
   const hasYearDocs = cat.yearDocs && cat.yearDocs.length;
   const totalCount = cat.docs.length + (hasYearDocs ? cat.yearDocs.length : 0);
 
@@ -1608,6 +1714,29 @@ function wireYearAccordion(){
   });
 }
 
+function wireMsdsAccordion(){
+  document.querySelectorAll('.msds-parent').forEach(item => {
+    const btn = item.querySelector('.msds-parent-btn');
+    const panel = item.querySelector('.msds-sub-panel');
+    btn.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.msds-parent.open').forEach(other => {
+        if(other !== item){
+          other.classList.remove('open');
+          other.querySelector('.msds-sub-panel').style.maxHeight = null;
+        }
+      });
+      if(isOpen){
+        item.classList.remove('open');
+        panel.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+      }
+    });
+  });
+}
+
 /* ============================================================
    메인 렌더 디스패치
    ============================================================ */
@@ -1639,6 +1768,7 @@ function render(){
 
   app.innerHTML = `<div class="wrap">${html}</div>`;
   wireYearAccordion();
+  wireMsdsAccordion();
   initHomeSheet();
   initPwaHint();
   if(document.getElementById('weatherCard')) loadWeather();
