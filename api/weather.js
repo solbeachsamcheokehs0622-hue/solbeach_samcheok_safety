@@ -124,8 +124,8 @@ function weatherIconAndCondition(pty, sky) {
 
 // 강원(관서코드 105)의 최신 특보 통보문 1건을 조회합니다.
 // (실측 결과, 이 API는 tmFc로 과거 시점을 지정해도 항상 "현재 시점 기준
-// 최신 통보문 1건"만 돌려줍니다 — 그래서 목록을 여러 번 조회할 필요 없이
-// 이 한 번의 조회만으로 "지금" 상황을 정확히 파악할 수 있습니다)
+// 최신 통보문 1건"만 돌려줍니다 — 그래서 한 번의 조회만으로 "지금" 상황을
+// 정확히 파악할 수 있습니다)
 async function fetchSamcheokAdvisory(serviceKey) {
   const url =
     `https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg` +
@@ -151,11 +151,28 @@ async function fetchSamcheokAdvisory(serviceKey) {
     .map((k) => rec[k])
     .filter((v) => typeof v === 'string' && v.trim() && !v.includes('없음'));
 
-  const samcheokLines = lines.filter((l) => l.includes('삼척'));
+  // 한 줄에 "강원도(횡성, 원주, 삼척평지, 동해평지...)"처럼 여러 지역이
+  // 같이 나열되는 경우가 많아, "삼척평지"만 뽑아서 보여줍니다.
+  // (삼척산지는 제외 — 쏠비치 삼척은 평지 지역입니다)
+  function extractSamcheokFlatLabel(line) {
+    const typeMatch = line.match(/^o?\s*([^:：]+)[:：]/);
+    const warnType = (typeMatch ? typeMatch[1] : line).trim();
+    const regionMatch = line.match(/\(([^)]*)\)/);
+    if (!regionMatch) return null;
+    const tokens = regionMatch[1].split(/[,，]/).map((t) => t.trim()).filter(Boolean);
+    const hasSamcheokFlat = tokens.some((t) => t.includes('삼척') && !t.includes('산지'));
+    if (!hasSamcheokFlat) return null;
+    return `${warnType} (삼척평지)`;
+  }
+
+  const samcheokFlatLabels = lines
+    .map((l) => extractSamcheokFlatLabel(l))
+    .filter(Boolean);
+  const uniqueLabels = [...new Set(samcheokFlatLabels)];
 
   return {
-    active: samcheokLines.length > 0,
-    items: samcheokLines.map((l) => ({ title: l.replace(/^o\s*/, '').trim() })),
+    active: uniqueLabels.length > 0,
+    items: uniqueLabels.map((label) => ({ title: label })),
     debug_tmFc: rec.tmFc,
     debug_allLines: lines,
   };
